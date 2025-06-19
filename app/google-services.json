@@ -1,0 +1,77 @@
+{
+  "project_info": {
+    "project_number": "443659966180",
+    "firebase_url": "https://admin-waves-of-food-65f9c-default-rtdb.firebaseio.com",
+    "project_id": "admin-waves-of-food-65f9c",
+    "storage_bucket": "admin-waves-of-food-65f9c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443659966180:android:df35d341d7c700a603bef1",
+        "android_client_info": {
+          "package_name": "com.example.adminwavesoffood"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443659966180-foueg4jo20tcd07ccnrr8vgsvmse5v1f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.adminwavesoffood",
+            "certificate_hash": "5ef504cff64dbc84293fe7d5fbc822a6a2d9aabb"
+          }
+        },
+        {
+          "client_id": "443659966180-igs278b8m9ftcoghsnhho69ql8vfa5g1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjFKP2WU8jOFuYgA5Z0rGTmSS2zbW7Adw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443659966180-igs278b8m9ftcoghsnhho69ql8vfa5g1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443659966180:android:cea83477804db1d303bef1",
+        "android_client_info": {
+          "package_name": "com.example.wavesoffood"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443659966180-igs278b8m9ftcoghsnhho69ql8vfa5g1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjFKP2WU8jOFuYgA5Z0rGTmSS2zbW7Adw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443659966180-igs278b8m9ftcoghsnhho69ql8vfa5g1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
