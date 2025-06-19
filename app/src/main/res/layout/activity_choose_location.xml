@@ -58,7 +58,6 @@
             android:text="Choose Location"
             android:textColor="@color/black"
             android:fontFamily="@font/lato_regular"/>
-        +
 
     </com.google.android.material.textfield.TextInputLayout>
 
