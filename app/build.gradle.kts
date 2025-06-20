@@ -67,6 +67,9 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
+    implementation ("com.google.firebase:firebase-messaging:23.1.2")
+
+
     implementation(libs.car.ui.lib) // Ensure that this is compatible with minSdk 28
 
     // Testing
