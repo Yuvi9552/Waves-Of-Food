@@ -20,24 +20,23 @@ class SearchFragment : Fragment() {
     private var adapter: MenuAdapter? = null
     private val originalMenuItems = mutableListOf<MenuItem>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (!isAdded) return
-                parentFragmentManager.beginTransaction()
-                    .replace(com.example.wavesoffood.R.id.fragment_container, HomeFragment())
-                    .addToBackStack(null)
-                    .commit()
-            }
-        })
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
         retrieveMenuItems()
         setUpSearchView()
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                parentFragmentManager.beginTransaction()
+                    .replace(com.example.wavesoffood.R.id.fragment_container, HomeFragment())
+                    .commit()
+            }
+        })
+
         return binding.root
+
+
     }
 
     private fun retrieveMenuItems() {

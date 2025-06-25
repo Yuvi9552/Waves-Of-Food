@@ -27,18 +27,6 @@ class HistoryFragment : Fragment() {
     private lateinit var userId: String
     private var listOfOrderItem: MutableList<OrderDetails> = mutableListOf()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        requireActivity().onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (!isAdded) return
-                parentFragmentManager.beginTransaction()
-                    .replace(com.example.wavesoffood.R.id.fragment_container, HomeFragment())
-                    .addToBackStack(null)
-                    .commit()
-            }
-        })
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentHistoryBinding.inflate(inflater, container, false)
@@ -51,6 +39,14 @@ class HistoryFragment : Fragment() {
 
         binding.recentbuyitemsdisplay.setOnClickListener { seeItemsRecentBuy() }
         binding.receivedbutton.setOnClickListener { updateOrderStatus() }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                parentFragmentManager.beginTransaction()
+                    .replace(com.example.wavesoffood.R.id.fragment_container, HomeFragment())
+                    .commit()
+            }
+        })
 
         return binding.root
     }

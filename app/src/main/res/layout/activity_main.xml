@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@drawable/backgroundimage"
     tools:context=".MainActivity">
 
     <!-- Top Text -->
@@ -25,8 +25,8 @@
     <!-- Notification Icon -->
     <ImageView
         android:id="@+id/notificationbell"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="@+id/textView20"
         app:layout_constraintEnd_toEndOf="parent"
@@ -50,7 +50,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:menu="@menu/menu"
-        app:itemBackground="@color/white"
+        app:itemBackground="@drawable/backgroundimage"
         app:elevation="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

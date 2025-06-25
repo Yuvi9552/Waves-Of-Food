@@ -48,11 +48,6 @@ class CartFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        retrieveCartItems()
-    }
-
     private fun retrieveCartItems() {
         val userId = auth.currentUser?.uid ?: return
         val cartRef = database.reference.child("user").child(userId).child("CartItems")
