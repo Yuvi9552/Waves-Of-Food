@@ -35,8 +35,15 @@ class CartFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
 
-        binding.proceedbuttoncart.setOnClickListener { getOrderItemsDetails() }
+        // ✅ Load items from Firebase
+        retrieveCartItems()
 
+        // ✅ Proceed button to PayQuickActivity
+        binding.proceedbuttoncart.setOnClickListener {
+            getOrderItemsDetails()
+        }
+
+        // ✅ Back navigation to HomeFragment
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 parentFragmentManager.beginTransaction()
@@ -56,6 +63,7 @@ class CartFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!isAdded || context == null) return
 
+                // Clear previous lists
                 foodNames.clear()
                 foodPrices.clear()
                 foodDescriptions.clear()
@@ -77,9 +85,17 @@ class CartFragment : Fragment() {
                     }
                 }
 
-                cartAdapter = CartAdapter(requireContext(), foodNames, foodPrices, foodDescriptions, foodImages, foodQuantity, foodIngredients, itemKeys)
-                binding.cartrecyclerview.layoutManager = LinearLayoutManager(requireContext())
-                binding.cartrecyclerview.adapter = cartAdapter
+                // Show cart items
+                if (foodNames.isNotEmpty()) {
+                    cartAdapter = CartAdapter(requireContext(), foodNames, foodPrices, foodDescriptions, foodImages, foodQuantity, foodIngredients, itemKeys)
+                    binding.cartrecyclerview.layoutManager = LinearLayoutManager(requireContext())
+                    binding.cartrecyclerview.adapter = cartAdapter
+                    binding.cartrecyclerview.visibility = View.VISIBLE
+                    binding.emptyCartText.visibility = View.GONE
+                } else {
+                    binding.cartrecyclerview.visibility = View.GONE
+                    binding.emptyCartText.visibility = View.VISIBLE
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
