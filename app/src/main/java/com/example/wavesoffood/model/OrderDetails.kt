@@ -16,34 +16,37 @@ class OrderDetails() : Serializable {
     var paymentReceived: Boolean = false
     var itemPushkey: String? = null
     var currentTime: Long = 0
+    var hotelUserId: String? = null
 
     constructor(
         userId: String,
-        name: String,
-        foodItemName: ArrayList<String>,
-        foodItemPrice: ArrayList<String>,
-        foodItemImage: ArrayList<String>,
-        foodItemQuantities: ArrayList<Int>,
+        userNames: String,
+        foodNames: MutableList<String>,
+        foodPrices: MutableList<String>,
+        foodImages: MutableList<String>,
+        foodQuantities: MutableList<Int>,
         address: String,
-        totalAmount: String,
-        phone: String,
-        time: Long,
-        itemPushKey: String?,
+        totalPrices: String,
+        phoneNumber: String,
+        currentTime: Long,
+        itemPushkey: String?,
         orderAccepted: Boolean,
-        paymentReceived: Boolean
+        paymentReceived: Boolean,
+        hotelUserId: String? = null
     ) : this() {
         this.userId = userId
-        this.userNames = name
-        this.foodNames = foodItemName
-        this.foodPrices = foodItemPrice
-        this.foodImages = foodItemImage
-        this.foodQuantities = foodItemQuantities
+        this.userNames = userNames
+        this.foodNames = foodNames
+        this.foodPrices = foodPrices
+        this.foodImages = foodImages
+        this.foodQuantities = foodQuantities
         this.address = address
-        this.totalPrices = totalAmount
-        this.phoneNumber = phone
-        this.currentTime = time
-        this.itemPushkey = itemPushKey
+        this.totalPrices = totalPrices
+        this.phoneNumber = phoneNumber
+        this.currentTime = currentTime
+        this.itemPushkey = itemPushkey
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
+        this.hotelUserId = hotelUserId
     }
 }

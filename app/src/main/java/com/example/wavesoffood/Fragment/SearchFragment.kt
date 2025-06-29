@@ -20,11 +20,15 @@ class SearchFragment : Fragment() {
     private var adapter: MenuAdapter? = null
     private val originalMenuItems = mutableListOf<MenuItem>()
 
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentSearchBinding.inflate(inflater, container, false)
+
         retrieveMenuItems()
-        setUpSearchView()
+        setupSearchView()
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -35,22 +39,32 @@ class SearchFragment : Fragment() {
         })
 
         return binding.root
-
-
     }
 
     private fun retrieveMenuItems() {
         database = FirebaseDatabase.getInstance()
-        val menuRef = database.reference.child("menu")
+        val hotelUsersRef = database.reference.child("Hotel Users")
 
-        menuRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!isAdded) return
 
                 originalMenuItems.clear()
-                for (itemSnapshot in snapshot.children) {
-                    itemSnapshot.getValue(MenuItem::class.java)?.let {
-                        originalMenuItems.add(it)
+
+                for (userSnapshot in snapshot.children) {
+                    val hotelUserId = userSnapshot.key ?: continue
+                    val hotelName = userSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
+
+                    val menuSnapshot = userSnapshot.child("menu")
+                    for (itemSnapshot in menuSnapshot.children) {
+                        val menuItem = itemSnapshot.getValue(MenuItem::class.java)
+                        menuItem?.let {
+                            val updatedItem = it.copy(
+                                hotelUserId = hotelUserId,
+                                hotelName = hotelName
+                            )
+                            originalMenuItems.add(updatedItem)
+                        }
                     }
                 }
 
@@ -58,7 +72,7 @@ class SearchFragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Optional: log or handle error
+                // Optional: log error or show message
             }
         })
     }
@@ -70,7 +84,7 @@ class SearchFragment : Fragment() {
         binding.menurecycler.adapter = adapter
     }
 
-    private fun setUpSearchView() {
+    private fun setupSearchView() {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let { filterMenuItems(it) }
@@ -88,7 +102,8 @@ class SearchFragment : Fragment() {
         if (!isAdded) return
 
         val filteredList = originalMenuItems.filter {
-            it.foodName?.contains(query, ignoreCase = true) == true
+            it.foodName?.contains(query, ignoreCase = true) == true ||
+                    it.hotelName?.contains(query, ignoreCase = true) == true
         }
 
         setAdapter(filteredList)

@@ -15,7 +15,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="10dp"
         android:elevation="6dp"
-        app:cardCornerRadius="22dp"
+        app:cardCornerRadius="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +30,7 @@
                 android:id="@+id/recentbuyitemfoodimage"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="16dp"
                 android:scaleType="centerCrop"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -56,14 +56,13 @@
                 android:id="@+id/recentbuyitemfoodprice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="40dp"
                 android:fontFamily="@font/lato_extra_bold"
                 android:text="$5"
                 android:textColor="@color/green"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.666"
-                app:layout_constraintStart_toEndOf="@+id/recentbuyitemfoodname"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
@@ -74,9 +73,9 @@
                 android:text="Quantity"
                 android:textColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/recentbuyitemfoodname"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="@+id/recentbuyitemfoodname"
+                app:layout_constraintEnd_toStartOf="@+id/recentbuyitemfoodprice"
+                app:layout_constraintHorizontal_bias="0.09"
+                app:layout_constraintStart_toEndOf="@+id/recentbuyitemfoodimage"
                 app:layout_constraintTop_toBottomOf="@+id/recentbuyitemfoodname" />
 
             <TextView

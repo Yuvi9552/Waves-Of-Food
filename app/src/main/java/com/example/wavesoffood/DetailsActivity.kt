@@ -2,6 +2,7 @@ package com.example.wavesoffood
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -9,7 +10,7 @@ import com.bumptech.glide.Glide
 import com.example.wavesoffood.databinding.ActivityDetailsBinding
 import com.example.wavesoffood.model.CartItems
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 
 class DetailsActivity : AppCompatActivity() {
 
@@ -21,6 +22,7 @@ class DetailsActivity : AppCompatActivity() {
     private var foodDescription: String? = null
     private var foodIngredients: String? = null
     private var foodPrice: String? = null
+    private var hotelUserId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,19 +38,64 @@ class DetailsActivity : AppCompatActivity() {
         foodIngredients = intent.getStringExtra("MenuItemIngredients")
         foodPrice = intent.getStringExtra("MenuItemPrice")
         foodImage = intent.getStringExtra("MenuItemImage")
+        hotelUserId = intent.getStringExtra("HotelUserId")
 
-        // Bind data to views
-        binding.detailefoodname.text = foodName
-        binding.descriptiontext.text = foodDescription
-        binding.ingridientstext.text = foodIngredients
+        Log.d("DetailsActivity", "Received:")
+        Log.d("DetailsActivity", "foodName: $foodName")
+        Log.d("DetailsActivity", "foodDescription: $foodDescription")
+        Log.d("DetailsActivity", "foodIngredients: $foodIngredients")
+        Log.d("DetailsActivity", "foodPrice: $foodPrice")
+        Log.d("DetailsActivity", "foodImage: $foodImage")
+        Log.d("DetailsActivity", "hotelUserId: $hotelUserId")
 
-        Glide.with(this)
-            .load(Uri.parse(foodImage))
-            .into(binding.descriptionimage)
+        // Set Food Details
+        binding.detailefoodname.text = foodName ?: "No Name"
+        binding.descriptiontext.text = foodDescription ?: "No Description"
+        binding.ingridientstext.text = foodIngredients ?: "No Ingredients"
+
+        try {
+            Glide.with(this)
+                .load(Uri.parse(foodImage))
+                .into(binding.descriptionimage)
+        } catch (e: Exception) {
+            Log.e("DetailsActivity", "Image load error: ${e.localizedMessage}")
+        }
 
         binding.descriptionimage.setOnClickListener { finish() }
 
         binding.addtocartbutton.setOnClickListener { addItemToCart() }
+
+        // Fetch Hotel Details
+        if (!hotelUserId.isNullOrEmpty()) {
+            fetchHotelDetails(hotelUserId!!)
+        } else {
+            Log.e("DetailsActivity", "HotelUserId is NULL or EMPTY. Cannot fetch hotel data.")
+        }
+    }
+
+    private fun fetchHotelDetails(hotelUserId: String) {
+        val databaseRef = FirebaseDatabase.getInstance()
+            .getReference("Hotel Users")
+            .child(hotelUserId)
+
+        databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val hotelName = snapshot.child("nameOfResturant").getValue(String::class.java)
+                val hotelAddress = snapshot.child("address").getValue(String::class.java)
+                val hotelPhone = snapshot.child("phone").getValue(String::class.java)
+
+                Log.d("HotelData", "HotelName: $hotelName, Address: $hotelAddress, Phone: $hotelPhone")
+
+                binding.restaurantNameText.text = hotelName ?: "N/A"
+                binding.restaurantAddressText.text = hotelAddress ?: "N/A"
+                binding.restaurantPhoneText.text = hotelPhone ?: "N/A"
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("HotelData", "DB Error: ${error.message}")
+                Toast.makeText(this@DetailsActivity, "Failed to load hotel info", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun addItemToCart() {

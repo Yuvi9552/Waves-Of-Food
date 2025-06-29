@@ -40,6 +40,8 @@ class MenuAdapter(
                         putExtra("MenuItemImage", menuItem.foodImage)
                         putExtra("MenuItemDescription", menuItem.foodDescription)
                         putExtra("MenuItemIngredients", menuItem.foodIngredients)
+                        putExtra("HotelUserId", menuItem.hotelUserId)
+                        putExtra("HotelName", menuItem.hotelName)
                     }
                     context.startActivity(intent)
                 }
@@ -48,8 +50,10 @@ class MenuAdapter(
 
         fun bind(position: Int) {
             val menuItem = menuItems[position]
-            binding.menuFoodNameid.text = menuItem.foodName
-            binding.menuPriceid.text = menuItem.foodPrice
+            binding.menuFoodNameid.text = menuItem.foodName ?: "Unnamed Food"
+            binding.menuPriceid.text = menuItem.foodPrice ?: "₹0"
+            binding.menuHotelNameid.text = menuItem.hotelName ?: "Unknown Hotel"
+
             Glide.with(context)
                 .load(Uri.parse(menuItem.foodImage))
                 .into(binding.menuImageid)

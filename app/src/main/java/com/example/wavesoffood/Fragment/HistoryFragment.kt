@@ -1,7 +1,6 @@
 package com.example.wavesoffood.Fragment
 
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -27,7 +26,6 @@ class HistoryFragment : Fragment() {
     private lateinit var userId: String
     private var listOfOrderItem: MutableList<OrderDetails> = mutableListOf()
 
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentHistoryBinding.inflate(inflater, container, false)
         auth = FirebaseAuth.getInstance()
@@ -38,7 +36,9 @@ class HistoryFragment : Fragment() {
         fetchBuyHistory()
 
         binding.recentbuyitemsdisplay.setOnClickListener { seeItemsRecentBuy() }
-        binding.receivedbutton.setOnClickListener { updateOrderStatus() }
+
+        // Removed receivedbutton click and visibility handling
+        // binding.receivedbutton.setOnClickListener { updateAllOrderStatuses() }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -66,7 +66,7 @@ class HistoryFragment : Fragment() {
                     item?.let { listOfOrderItem.add(it) }
                 }
 
-                listOfOrderItem.reverse()
+                listOfOrderItem.sortByDescending { it.currentTime }
 
                 if (listOfOrderItem.isNotEmpty()) {
                     setDataInRecentBuyItem()
@@ -78,16 +78,14 @@ class HistoryFragment : Fragment() {
         })
     }
 
-    private fun updateOrderStatus() {
-        val itemPushKey = listOfOrderItem.firstOrNull()?.itemPushkey ?: return
-        database.reference.child("CompletedOrder").child(itemPushKey)
-            .child("paymentReceived").setValue(true)
-    }
-
     private fun seeItemsRecentBuy() {
         if (!isAdded || listOfOrderItem.isEmpty()) return
+
+        val recentTime = listOfOrderItem.maxOfOrNull { it.currentTime } ?: return
+        val recentOrders = listOfOrderItem.filter { it.currentTime == recentTime }
+
         val intent = Intent(requireContext(), RecentBuyItems::class.java)
-        intent.putExtra("RecentBuyOrderItem", ArrayList(listOfOrderItem))
+        intent.putExtra("RecentBuyOrderItem", ArrayList(recentOrders))
         startActivity(intent)
     }
 
@@ -95,23 +93,27 @@ class HistoryFragment : Fragment() {
         if (!isAdded) return
 
         binding.recentbuyitemsdisplay.visibility = View.VISIBLE
-        val item = listOfOrderItem.firstOrNull() ?: return
 
-        binding.buyagainfoodnamehistory.text = item.foodNames?.firstOrNull() ?: ""
-        binding.buyagainfoodpricehistory.text = item.foodPrices?.firstOrNull() ?: ""
+        val recentTime = listOfOrderItem.maxOfOrNull { it.currentTime } ?: return
+        val recentOrder = listOfOrderItem.firstOrNull { it.currentTime == recentTime } ?: return
 
-        val imageUrl = item.foodImages?.firstOrNull()
+        binding.buyagainfoodnamehistory.text = recentOrder.foodNames?.firstOrNull() ?: ""
+        binding.buyagainfoodpricehistory.text = recentOrder.foodPrices?.firstOrNull() ?: ""
+
+        val imageUrl = recentOrder.foodImages?.firstOrNull()
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this).load(Uri.parse(imageUrl)).into(binding.foodimages)
         }
 
-        if (item.orderAccepted) {
-            binding.orderstatus.background.setTint(Color.GREEN)
-            binding.receivedbutton.visibility = View.VISIBLE
-        } else {
-            binding.receivedbutton.visibility = View.GONE
-        }
+        // ❌ No longer checking or showing received button
+        // checkIfAnyItemUnpaid(recentTime)
     }
+
+    // ❌ Fully removed this method
+    // private fun updateAllOrderStatuses() { ... }
+
+    // ❌ Fully removed this method
+    // private fun checkIfAnyItemUnpaid(recentTime: Long) { ... }
 
     private fun setPreviousBuyItemsRecyclerView() {
         if (!isAdded || context == null) return
@@ -120,14 +122,22 @@ class HistoryFragment : Fragment() {
         val prices = mutableListOf<String>()
         val images = mutableListOf<String>()
 
-        for (i in 1 until listOfOrderItem.size) {
-            listOfOrderItem[i].foodNames?.firstOrNull()?.let { names.add(it) }
-            listOfOrderItem[i].foodPrices?.firstOrNull()?.let { prices.add(it) }
-            listOfOrderItem[i].foodImages?.firstOrNull()?.let { images.add(it) }
+        val recentTime = listOfOrderItem.maxOfOrNull { it.currentTime } ?: return
+        val previousItems = listOfOrderItem.filter { it.currentTime < recentTime }
+
+        for (item in previousItems) {
+            item.foodNames?.firstOrNull()?.let { names.add(it) }
+            item.foodPrices?.firstOrNull()?.let { prices.add(it) }
+            item.foodImages?.firstOrNull()?.let { images.add(it) }
         }
 
-        binding.buyagainrecyler.layoutManager = LinearLayoutManager(requireContext())
-        buyAgainAdapter = BuyAgainAdapter(names, prices, images, requireContext())
-        binding.buyagainrecyler.adapter = buyAgainAdapter
+        if (names.isNotEmpty()) {
+            binding.buyagainrecyler.visibility = View.VISIBLE
+            binding.buyagainrecyler.layoutManager = LinearLayoutManager(requireContext())
+            buyAgainAdapter = BuyAgainAdapter(names, prices, images, requireContext())
+            binding.buyagainrecyler.adapter = buyAgainAdapter
+        } else {
+            binding.buyagainrecyler.visibility = View.GONE
+        }
     }
 }

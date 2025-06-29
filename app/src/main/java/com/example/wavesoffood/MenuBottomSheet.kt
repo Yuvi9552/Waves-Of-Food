@@ -24,21 +24,35 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMenuBottomSheetBinding.inflate(inflater, container, false)
-        retrieveMenuItems()
+        retrieveAllMenuItemsFromAllHotelUsers()
         return binding.root
     }
 
-    private fun retrieveMenuItems() {
+    private fun retrieveAllMenuItemsFromAllHotelUsers() {
         database = FirebaseDatabase.getInstance()
-        val foodRef: DatabaseReference = database.reference.child("menu")
+        val hotelUsersRef = database.reference.child("Hotel Users")
 
-        foodRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 menuItems.clear()
-                for (foodSnapshot in snapshot.children) {
-                    val menuItem = foodSnapshot.getValue(MenuItem::class.java)
-                    menuItem?.let { menuItems.add(it) }
+
+                for (userSnapshot in snapshot.children) {
+                    val hotelUserId = userSnapshot.key ?: continue
+                    val hotelName = userSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
+
+                    val menuRef = userSnapshot.child("menu")
+                    for (menuItemSnapshot in menuRef.children) {
+                        val menuItem = menuItemSnapshot.getValue(MenuItem::class.java)
+                        menuItem?.let {
+                            val updatedItem = it.copy(
+                                hotelUserId = hotelUserId,
+                                hotelName = hotelName // ✅ Add hotel name
+                            )
+                            menuItems.add(updatedItem)
+                        }
+                    }
                 }
+
                 setAdapter()
             }
 

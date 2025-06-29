@@ -25,7 +25,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="87dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
@@ -77,7 +77,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.266">
+                app:layout_constraintVertical_bias="0.51">
                 <!-- You can place an icon or image here if needed -->
             </androidx.cardview.widget.CardView>
 
@@ -93,22 +93,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/menu_1" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/receivedbutton"
-                android:layout_width="60dp"
-                android:layout_height="20dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:background="@drawable/addtocart"
-                android:fontFamily="@font/yeonsung_regular"
-                android:text="Received"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/orderstatus"
-                app:layout_constraintStart_toStartOf="@+id/orderstatus"
-                app:layout_constraintTop_toBottomOf="@+id/orderstatus" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

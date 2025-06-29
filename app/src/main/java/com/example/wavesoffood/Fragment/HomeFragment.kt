@@ -56,15 +56,29 @@ class HomeFragment : Fragment() {
 
     private fun retrieveAndDisplayPopularItems() {
         database = FirebaseDatabase.getInstance()
-        val foodRef = database.reference.child("menu")
+        val hotelUsersRef = database.reference.child("Hotel Users")
 
-        foodRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 menuItems.clear()
-                for (foodSnapshot in snapshot.children) {
-                    val item = foodSnapshot.getValue(MenuItem::class.java)
-                    item?.let { menuItems.add(it) }
+
+                for (userSnapshot in snapshot.children) {
+                    val hotelUserId = userSnapshot.key ?: continue
+                    val hotelName = userSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
+
+                    val menuSnapshot = userSnapshot.child("menu")
+                    for (foodSnapshot in menuSnapshot.children) {
+                        val item = foodSnapshot.getValue(MenuItem::class.java)
+                        item?.let {
+                            val updatedItem = it.copy(
+                                hotelUserId = hotelUserId,
+                                hotelName = hotelName
+                            )
+                            menuItems.add(updatedItem)
+                        }
+                    }
                 }
+
                 displayRandomPopularItems()
             }
 

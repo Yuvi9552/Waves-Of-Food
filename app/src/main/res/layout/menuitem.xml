@@ -7,12 +7,13 @@
     android:background="@drawable/backgroundimage">
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/foodCard"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="6dp"
         android:elevation="6dp"
         app:cardCornerRadius="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -25,27 +26,32 @@
             android:layout_height="wrap_content"
             android:padding="8dp">
 
+            <!-- Food Image -->
             <ImageView
                 android:id="@+id/menuImageid"
                 android:layout_width="62dp"
                 android:layout_height="62dp"
                 android:layout_marginStart="8dp"
                 android:scaleType="centerCrop"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:srcCompat="@tools:sample/avatars" />
 
+            <!-- Food Name -->
+
+            <!-- Price -->
             <TextView
                 android:id="@+id/menuFoodNameid"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginTop="32dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="24dp"
                 android:fontFamily="@font/yeonsung_regular"
-                android:text="Very Long Food Name That Would Normally Push Things"
+                android:text="Food Name"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                app:layout_constraintEnd_toStartOf="@id/menuPriceid"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toEndOf="@id/menuImageid"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -53,33 +59,71 @@
                 android:id="@+id/menuPriceid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="50dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="40dp"
                 android:fontFamily="@font/lato_extra_bold"
-                android:text="$5"
+                android:text="₹99"
                 android:textColor="@color/green"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/menuaddtocartid"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- Add to Cart Button -->
             <TextView
                 android:id="@+id/menuaddtocartid"
                 android:layout_width="80dp"
                 android:layout_height="20dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp"
                 android:background="@drawable/addtocart"
                 android:gravity="center"
                 android:text="Add to Cart"
                 android:textColor="#F3FBFAFA"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/menuPriceid"
                 app:layout_constraintStart_toStartOf="@+id/menuPriceid"
-                app:layout_constraintTop_toBottomOf="@+id/menuPriceid" />
+                app:layout_constraintTop_toBottomOf="@id/menuPriceid" />
 
+            <!-- 🏨 Hotel Name CardView (Inside Food Card) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/hotelCardInside"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="4dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/menuaddtocartid">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:fontFamily="@font/yeonsung_regular"
+                        android:text="Restaurant :"
+                        android:textColor="@color/black"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/menuHotelNameid"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/lato_regular"
+                        android:text="Hotel Name"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
