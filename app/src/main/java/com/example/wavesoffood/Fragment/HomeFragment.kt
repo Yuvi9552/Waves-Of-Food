@@ -89,7 +89,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun displayRandomPopularItems() {
-        val randomItems = menuItems.shuffled().take(6)
+        val randomItems = menuItems.shuffled().take(10)
         if (isAdded && context != null) {
             binding.popularrecyclerview.layoutManager = LinearLayoutManager(requireContext())
             binding.popularrecyclerview.adapter = MenuAdapter(randomItems, requireContext())

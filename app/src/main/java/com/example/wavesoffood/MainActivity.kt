@@ -19,8 +19,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         notificationBell = findViewById(R.id.notificationbell)
 
-        loadFragment(HomeFragment())
-
+        // 🔹 Set bottom nav item listener
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             val fragment = when (menuItem.itemId) {
                 R.id.homeFragment -> HomeFragment()
@@ -34,6 +33,15 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
+        // 🔹 Load correct fragment based on intent flag AFTER listener is set
+        val openCart = intent.getBooleanExtra("openCart", false)
+        bottomNavigationView.selectedItemId = if (openCart) {
+            R.id.cartFragment
+        } else {
+            R.id.homeFragment
+        }
+
+        // 🔹 Notification bell opens Notification Fragment directly
         notificationBell.setOnClickListener {
             loadFragment(Notification_Bottom_Fragment())
         }

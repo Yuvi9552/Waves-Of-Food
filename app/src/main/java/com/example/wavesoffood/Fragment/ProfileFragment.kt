@@ -18,20 +18,30 @@ class ProfileFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var database: FirebaseDatabase
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentProfileBinding.inflate(inflater, container, false)
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
 
         setUserData()
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                parentFragmentManager.beginTransaction()
-                    .replace(com.example.wavesoffood.R.id.fragment_container, HomeFragment())
-                    .commit()
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    parentFragmentManager.beginTransaction()
+                        .replace(
+                            com.example.wavesoffood.R.id.fragment_container,
+                            HomeFragment()
+                        )
+                        .commit()
+                }
             }
-        })
+        )
 
         binding.profilesavebuttonid.setOnClickListener {
             val name = binding.profilenameid.text.toString()
@@ -50,35 +60,50 @@ class ProfileFragment : Fragment() {
 
         userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                // Load core user model if exists
                 snapshot.getValue(UserModel::class.java)?.let {
                     binding.profilenameid.setText(it.name)
-                    binding.profileaddressid.setText(it.address)
                     binding.profileemailid.setText(it.email)
                     binding.profilephoneid.setText(it.phone)
                 }
+                // Load stored location into address field
+                val loc = snapshot.child("location").getValue(String::class.java)
+                binding.profileaddressid.setText(loc ?: "")
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to load profile",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
 
-    private fun updateUserData(name: String, email: String, address: String, phone: String) {
+    private fun updateUserData(
+        name: String,
+        email: String,
+        address: String,
+        phone: String
+    ) {
         val userId = auth.currentUser?.uid ?: return
-        val userData = mapOf(
+        val updates = mapOf<String, Any>(
             "name" to name,
-            "address" to address,
             "email" to email,
-            "phone" to phone
+            "phone" to phone,
+            // address in profile maps to the stored 'location'
+            "location" to address
         )
 
-        database.getReference("user").child(userId).setValue(userData)
+        database.getReference("user").child(userId)
+            .updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Profile Updated", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT)
+                    .show()
             }
     }
 }

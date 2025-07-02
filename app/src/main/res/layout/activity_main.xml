@@ -13,7 +13,7 @@
         android:id="@+id/textView20"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="55dp"
         android:fontFamily="@font/yeonsung_regular"
         android:text="Explore Your Favorite Food"

@@ -58,6 +58,11 @@ dependencies {
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 
+    implementation("com.google.android.libraries.places:places:3.3.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+
+
     // Firebase Database and Storage
     implementation(libs.firebase.database)
     implementation(libs.firebase.storage)
@@ -68,6 +73,11 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation ("com.google.firebase:firebase-messaging:23.1.2")
+
+    implementation("com.google.firebase:firebase-messaging:21.1.0")
+    implementation("com.pusher:push-notifications-android:1.9.0")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
 
     implementation(libs.car.ui.lib) // Ensure that this is compatible with minSdk 28

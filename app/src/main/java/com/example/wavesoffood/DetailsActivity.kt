@@ -1,5 +1,6 @@
 package com.example.wavesoffood
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -40,14 +41,6 @@ class DetailsActivity : AppCompatActivity() {
         foodImage = intent.getStringExtra("MenuItemImage")
         hotelUserId = intent.getStringExtra("HotelUserId")
 
-        Log.d("DetailsActivity", "Received:")
-        Log.d("DetailsActivity", "foodName: $foodName")
-        Log.d("DetailsActivity", "foodDescription: $foodDescription")
-        Log.d("DetailsActivity", "foodIngredients: $foodIngredients")
-        Log.d("DetailsActivity", "foodPrice: $foodPrice")
-        Log.d("DetailsActivity", "foodImage: $foodImage")
-        Log.d("DetailsActivity", "hotelUserId: $hotelUserId")
-
         // Set Food Details
         binding.detailefoodname.text = foodName ?: "No Name"
         binding.descriptiontext.text = foodDescription ?: "No Description"
@@ -65,7 +58,13 @@ class DetailsActivity : AppCompatActivity() {
 
         binding.addtocartbutton.setOnClickListener { addItemToCart() }
 
-        // Fetch Hotel Details
+        binding.gotocartbutton.setOnClickListener {
+            // ✅ Directly open CartActivity, not MainActivity
+            val intent = Intent(this@DetailsActivity, CartActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
         if (!hotelUserId.isNullOrEmpty()) {
             fetchHotelDetails(hotelUserId!!)
         } else {
@@ -83,8 +82,6 @@ class DetailsActivity : AppCompatActivity() {
                 val hotelName = snapshot.child("nameOfResturant").getValue(String::class.java)
                 val hotelAddress = snapshot.child("address").getValue(String::class.java)
                 val hotelPhone = snapshot.child("phone").getValue(String::class.java)
-
-                Log.d("HotelData", "HotelName: $hotelName, Address: $hotelAddress, Phone: $hotelPhone")
 
                 binding.restaurantNameText.text = hotelName ?: "N/A"
                 binding.restaurantAddressText.text = hotelAddress ?: "N/A"

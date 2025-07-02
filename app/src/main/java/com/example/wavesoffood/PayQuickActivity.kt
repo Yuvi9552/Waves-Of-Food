@@ -36,6 +36,7 @@ class PayQuickActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         databaseRef = FirebaseDatabase.getInstance().reference
 
+        // Retrieve cart details from intent
         foodItemName = intent.getStringArrayListExtra("FoodItemName") ?: arrayListOf()
         foodItemPrice = intent.getStringArrayListExtra("FoodItemPrice") ?: arrayListOf()
         foodItemImage = intent.getStringArrayListExtra("FoodItemImage") ?: arrayListOf()
@@ -43,15 +44,17 @@ class PayQuickActivity : AppCompatActivity() {
         foodItemIngredients = intent.getStringArrayListExtra("FoodItemIngredients") ?: arrayListOf()
         foodItemQuantity = intent.getIntegerArrayListExtra("FoodItemQuantity") ?: arrayListOf()
 
+        // Prefill user details including saved location
         setUserData()
 
+        // Show total amount
         totalAmountCalculate = "${calculateTotalAmount()} ₹"
         binding.totalcalculateamount.setText(totalAmountCalculate)
         binding.totalcalculateamount.isEnabled = false
 
         binding.placemyorderbutton.setOnClickListener {
             personName = binding.personName.text.toString().trim()
-            personAddress = binding.personAdress.text.toString().trim()
+            personAddress = binding.personAddress.text.toString().trim()
             personPhone = binding.personPhone.text.toString().trim()
 
             if (personName.isBlank() || personAddress.isBlank() || personPhone.isBlank()) {
@@ -62,11 +65,32 @@ class PayQuickActivity : AppCompatActivity() {
         }
     }
 
+    private fun setUserData() {
+        val user = auth.currentUser ?: return
+        databaseRef.child("user").child(user.uid).get()
+            .addOnSuccessListener { snapshot ->
+                binding.personName.setText(
+                    snapshot.child("name").getValue(String::class.java) ?: ""
+                )
+                // Load saved location instead of old address field
+                binding.personAddress.setText(
+                    snapshot.child("location").getValue(String::class.java) ?: ""
+                )
+                binding.personPhone.setText(
+                    snapshot.child("phone").getValue(String::class.java) ?: ""
+                )
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun placeOrder() {
         val uid = auth.currentUser?.uid ?: return
         val time = System.currentTimeMillis()
 
-        val foodMapByHotel = mutableMapOf<String, MutableList<Int>>() // hotelId -> item indices
+        // Group items by hotel based on image matching
+        val foodMapByHotel = mutableMapOf<String, MutableList<Int>>()
         val menuRef = databaseRef.child("Hotel Users")
 
         menuRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -87,10 +111,15 @@ class PayQuickActivity : AppCompatActivity() {
                 }
 
                 if (foodMapByHotel.isEmpty()) {
-                    Toast.makeText(this@PayQuickActivity, "No hotel info found for items", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@PayQuickActivity,
+                        "No hotel info found for items",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     return
                 }
 
+                // Save per-hotel orders
                 for ((hotelId, itemIndices) in foodMapByHotel) {
                     val itemNames = ArrayList<String>()
                     val itemPrices = ArrayList<String>()
@@ -103,7 +132,10 @@ class PayQuickActivity : AppCompatActivity() {
                         itemPrices.add(foodItemPrice[i])
                         itemImages.add(foodItemImage[i])
                         itemQuantities.add(foodItemQuantity[i])
-                        val price = foodItemPrice[i].replace("₹", "").replace("[^0-9]".toRegex(), "").toIntOrNull() ?: 0
+                        val price = foodItemPrice[i]
+                            .replace("₹", "")
+                            .replace("[^0-9]".toRegex(), "")
+                            .toIntOrNull() ?: 0
                         totalForHotel += price * foodItemQuantity[i]
                     }
 
@@ -116,7 +148,7 @@ class PayQuickActivity : AppCompatActivity() {
                         foodImages = itemImages,
                         foodQuantities = itemQuantities,
                         address = personAddress,
-                        totalPrices = "$totalForHotel ₹",
+                        totalPrices = "${totalForHotel} ₹",
                         phoneNumber = personPhone,
                         currentTime = time,
                         itemPushkey = orderKey,
@@ -125,14 +157,21 @@ class PayQuickActivity : AppCompatActivity() {
                         hotelUserId = hotelId
                     )
 
-                    // Save under hotel
-                    databaseRef.child("Hotel Users").child(hotelId).child("OrderDetails").child(orderKey).setValue(order)
+                    // Write to both hotel and user nodes
+                    databaseRef.child("Hotel Users")
+                        .child(hotelId)
+                        .child("OrderDetails")
+                        .child(orderKey)
+                        .setValue(order)
 
-                    // Save under user BuyHistory
-                    databaseRef.child("user").child(uid).child("BuyHistory").child(orderKey).setValue(order)
+                    databaseRef.child("user")
+                        .child(uid)
+                        .child("BuyHistory")
+                        .child(orderKey)
+                        .setValue(order)
                 }
 
-                // Save backup of full order
+                // Backup full order
                 val fullOrderKey = databaseRef.push().key ?: return
                 val fullOrder = OrderDetails(
                     userId = uid,
@@ -150,17 +189,27 @@ class PayQuickActivity : AppCompatActivity() {
                     paymentReceived = false,
                     hotelUserId = null
                 )
-                databaseRef.child("orderDetails").child(fullOrderKey).setValue(fullOrder)
+                databaseRef.child("orderDetails")
+                    .child(fullOrderKey)
+                    .setValue(fullOrder)
 
-                // Clear cart
-                databaseRef.child("user").child(uid).child("CartItems").removeValue()
+                // Clear user cart
+                databaseRef.child("user")
+                    .child(uid)
+                    .child("CartItems")
+                    .removeValue()
 
-                // Show success
-                CongratsBottomSheet().show(supportFragmentManager, "Congrats")
+                // Show confirmation
+                CongratsBottomSheet()
+                    .show(supportFragmentManager, "Congrats")
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@PayQuickActivity, "Error fetching hotel menus", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@PayQuickActivity,
+                    "Error fetching hotel menus",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
@@ -168,22 +217,12 @@ class PayQuickActivity : AppCompatActivity() {
     private fun calculateTotalAmount(): Int {
         var total = 0
         for (i in foodItemPrice.indices) {
-            val price = foodItemPrice[i].replace("₹", "").replace("[^0-9]".toRegex(), "").toIntOrNull() ?: 0
+            val price = foodItemPrice[i]
+                .replace("₹", "")
+                .replace("[^0-9]".toRegex(), "")
+                .toIntOrNull() ?: 0
             total += price * (foodItemQuantity.getOrNull(i) ?: 1)
         }
         return total
-    }
-
-    private fun setUserData() {
-        val user = auth.currentUser ?: return
-        databaseRef.child("user").child(user.uid).get()
-            .addOnSuccessListener {
-                binding.personName.setText(it.child("name").getValue(String::class.java) ?: "")
-                binding.personAdress.setText(it.child("address").getValue(String::class.java) ?: "")
-                binding.personPhone.setText(it.child("phone").getValue(String::class.java) ?: "")
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
-            }
     }
 }

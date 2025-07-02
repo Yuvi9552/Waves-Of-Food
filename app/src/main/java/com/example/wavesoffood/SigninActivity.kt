@@ -73,7 +73,7 @@ class SigninActivity : AppCompatActivity() {
                 auth.signInWithCredential(credential).addOnCompleteListener {
                     if (it.isSuccessful) {
                         Toast.makeText(this, "Successfully signed in with Google", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, MainActivity::class.java))
+                        startActivity(Intent(this, ChooseLocation::class.java))
                         finish()
                     } else {
                         Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
@@ -88,7 +88,7 @@ class SigninActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 Toast.makeText(this, "Account Created Successfully", Toast.LENGTH_SHORT).show()
                 saveUserData(username, email, password)
-                startActivity(Intent(this, LoginActivity::class.java))
+                startActivity(Intent(this, ChooseLocation::class.java))
                 finish()
             } else {
                 Toast.makeText(this, "Account Creation Failed", Toast.LENGTH_SHORT).show()
