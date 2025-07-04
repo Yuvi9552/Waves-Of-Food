@@ -26,24 +26,43 @@ A beautifully designed food ordering Android app developed in Kotlin, featuring 
 📁 Project Structure:
 
 WavesOfFood/
+
 ├── app/
+
 │   ├── src/
+
 │   │   └── main/
+
 │   │       ├── java/com/example/wavesoffood/
+
 │   │       │   ├── Activities/
+
 │   │       │   │   ├── CartActivity.kt
+
 │   │       │   │   ├── LoginActivity.kt
+
 │   │       │   │   ├── MainActivity.kt
+
 │   │       │   │   └── ...
+
 │   │       │   ├── Adapters/
+
 │   │       │   ├── Fragments/
+
 │   │       ├── res/
+
 │   │       │   ├── layout/
+
 │   │       │   ├── drawable/
+
 │   │       │   └── values/
+
 │   ├── build.gradle.kts
+
 │   └── google-services.json
+
 ├── build.gradle.kts
+
 └── settings.gradle.kts
 
 🔧 Setup Instructions:
