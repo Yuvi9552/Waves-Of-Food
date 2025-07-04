@@ -106,7 +106,7 @@ Usage Guide:
 🧾 Proceed to Pay Quick
 ⏳ Track orders via notifications or order history
 
-🧑‍💻 Developer: Yuvraj Aargade: GitHub: [YuvrajAragade](https://github.com/YuvrajAragade)
+🧑‍💻 Developer: Yuvraj Aargade: GitHub: https://github.com/
 
 📄 License: Yuvraj Aargade
 
