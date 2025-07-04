@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
@@ -40,6 +41,8 @@ class ChooseLocation : AppCompatActivity() {
 
     private val client = OkHttpClient()
     private lateinit var progressDialog: ProgressDialog
+
+    private var hasRequestedLocation = false  // Avoid duplicate calls in onResume
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,6 +235,21 @@ class ChooseLocation : AppCompatActivity() {
                         Toast.makeText(this, "Failed to save location", Toast.LENGTH_SHORT).show()
                     }
                 }
+        }
+    }
+
+    // ✅ Check if GPS is now enabled
+    private fun isGPSEnabled(): Boolean {
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    // ✅ Automatically refresh if user enabled GPS in settings
+    override fun onResume() {
+        super.onResume()
+        if (!hasRequestedLocation && isGPSEnabled()) {
+            hasRequestedLocation = true
+            getCurrentLocation()
         }
     }
 }
