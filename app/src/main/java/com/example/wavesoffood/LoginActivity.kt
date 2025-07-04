@@ -66,17 +66,39 @@ class LoginActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         auth.currentUser?.let {
-            startActivity(Intent(this, ChooseLocation::class.java))
-            finish()
+            if (it.isEmailVerified) {
+                startActivity(Intent(this, ChooseLocation::class.java))
+                finish()
+            }
         }
     }
 
     private fun loginUserAccount(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                updateUi(auth.currentUser)
+                val user = auth.currentUser
+                if (user != null && user.isEmailVerified) {
+                    updateUi(user)
+                } else {
+                    // Send new verification email
+                    user?.sendEmailVerification()?.addOnCompleteListener { verifyTask ->
+                        if (verifyTask.isSuccessful) {
+                            Toast.makeText(
+                                this,
+                                "Email not verified. A new verification link has been sent to $email.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                this,
+                                "Failed to send verification email. Try again later.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
             } else {
-                Toast.makeText(this, "Authentication Failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Authentication Failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

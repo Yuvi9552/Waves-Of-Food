@@ -41,7 +41,7 @@ class ChooseLocation : AppCompatActivity() {
     private val client = OkHttpClient()
     private lateinit var progressDialog: ProgressDialog
 
-    private var hasRequestedLocation = false  // Avoid duplicate calls in onResume
+    private var hasRequestedLocation = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -107,7 +107,7 @@ class ChooseLocation : AppCompatActivity() {
     private fun showGPSDialog() {
         AlertDialog.Builder(this)
             .setTitle("Enable Location Services")
-            .setMessage("To provide better service, please enable:\n\n• Device Location\n• High Accuracy Mode")
+            .setMessage("To provide better service, please enable:\n\n\u2022 Device Location\n\u2022 High Accuracy Mode")
             .setPositiveButton("Turn On") { _, _ ->
                 startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
@@ -216,34 +216,38 @@ class ChooseLocation : AppCompatActivity() {
     }
 
     private fun saveLocationToFirebase(location: String) {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid != null) {
-            val userRef = FirebaseDatabase.getInstance().reference.child("user").child(uid)
-            userRef.child("location").setValue(location)
-                .addOnSuccessListener {
-                    if (!isFinishing && !isDestroyed) {
-                        progressDialog.dismiss()
-                        Toast.makeText(this, "Location: $location", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.reload()?.addOnSuccessListener {
+            if (user.isEmailVerified) {
+                val uid = user.uid
+                val userRef = FirebaseDatabase.getInstance().reference.child("user").child(uid)
+                userRef.child("location").setValue(location)
+                    .addOnSuccessListener {
+                        if (!isFinishing && !isDestroyed) {
+                            progressDialog.dismiss()
+                            Toast.makeText(this, "Location: $location", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this, MainActivity::class.java))
+                            finish()
+                        }
                     }
-                }
-                .addOnFailureListener {
-                    if (!isFinishing && !isDestroyed) {
-                        progressDialog.dismiss()
-                        Toast.makeText(this, "Failed to save location", Toast.LENGTH_SHORT).show()
+                    .addOnFailureListener {
+                        if (!isFinishing && !isDestroyed) {
+                            progressDialog.dismiss()
+                            Toast.makeText(this, "Failed to save location", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
+            } else {
+                progressDialog.dismiss()
+                Toast.makeText(this, "Please verify your email before continuing.", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
-    // ✅ Check if GPS is now enabled
     private fun isGPSEnabled(): Boolean {
         val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
-    // ✅ Automatically refresh if user enabled GPS in settings
     override fun onResume() {
         super.onResume()
         if (!hasRequestedLocation && isGPSEnabled()) {

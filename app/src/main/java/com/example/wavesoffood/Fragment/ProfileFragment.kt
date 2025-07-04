@@ -1,5 +1,6 @@
 package com.example.wavesoffood.Fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import com.example.wavesoffood.LoginActivity
 import com.example.wavesoffood.databinding.FragmentProfileBinding
 import com.example.wavesoffood.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
@@ -51,6 +53,13 @@ class ProfileFragment : Fragment() {
             updateUserData(name, email, address, phone)
         }
 
+        binding.logoutbutton.setOnClickListener {
+            auth.signOut()
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
+
         return binding.root
     }
 
@@ -60,13 +69,11 @@ class ProfileFragment : Fragment() {
 
         userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // Load core user model if exists
                 snapshot.getValue(UserModel::class.java)?.let {
                     binding.profilenameid.setText(it.name)
                     binding.profileemailid.setText(it.email)
                     binding.profilephoneid.setText(it.phone)
                 }
-                // Load stored location into address field
                 val loc = snapshot.child("location").getValue(String::class.java)
                 binding.profileaddressid.setText(loc ?: "")
             }
@@ -92,7 +99,6 @@ class ProfileFragment : Fragment() {
             "name" to name,
             "email" to email,
             "phone" to phone,
-            // address in profile maps to the stored 'location'
             "location" to address
         )
 
@@ -102,8 +108,7 @@ class ProfileFragment : Fragment() {
                 Toast.makeText(requireContext(), "Profile Updated", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT).show()
             }
     }
 }

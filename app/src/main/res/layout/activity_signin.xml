@@ -22,8 +22,8 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/creataccountbutton"
-        android:layout_width="152dp"
-        android:layout_height="57dp"
+        android:layout_width="170dp"
+        android:layout_height="52dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/greenbutton"
         android:fontFamily="@font/lato_bold"

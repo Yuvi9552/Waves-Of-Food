@@ -86,12 +86,28 @@ class SigninActivity : AppCompatActivity() {
     private fun createAccount(username: String, email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                Toast.makeText(this, "Account Created Successfully", Toast.LENGTH_SHORT).show()
-                saveUserData(username, email, password)
-                startActivity(Intent(this, ChooseLocation::class.java))
-                finish()
+                val currentUser = auth.currentUser
+
+                currentUser?.sendEmailVerification()?.addOnCompleteListener { verifyTask ->
+                    if (verifyTask.isSuccessful) {
+                        Toast.makeText(
+                            this,
+                            "Account created. Verification email sent to $email",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        saveUserData(username, email, password)
+
+                        val intent = Intent(this, ChooseLocation::class.java)
+                        intent.putExtra("email_verification_pending", true)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
+                    }
+                }
             } else {
-                Toast.makeText(this, "Account Creation Failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Account Creation Failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 Log.e("FirebaseAuth", "createAccount: Failed", task.exception)
             }
         }
