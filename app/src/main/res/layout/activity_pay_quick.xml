@@ -22,9 +22,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="50dp"
-            android:fontFamily="@font/yeonsung_regular"
+            android:fontFamily="@font/lato_regular"
             android:text="User Details"
-            android:textColor="@color/green"
+            android:textColor="@color/black"
             android:textSize="24sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -233,19 +233,19 @@
 
 
     <androidx.appcompat.widget.AppCompatButton
-        android:layout_width="match_parent"
         android:id="@+id/placemyorderbutton"
+        android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="Place My Order"
-        android:textSize="20sp"
-        android:layout_marginBottom="40dp"
+        android:layout_gravity="bottom"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
+        android:layout_marginBottom="40dp"
         android:background="@drawable/edittext"
-        android:textColor="@color/green"
+        android:fontFamily="@font/lato_regular"
+        android:text="Place My Order"
         android:textAllCaps="false"
-        android:fontFamily="@font/yeonsung_regular"
-        android:layout_gravity="bottom"/>
+        android:textColor="@color/green"
+        android:textSize="20sp" />
 
 
 </FrameLayout>
