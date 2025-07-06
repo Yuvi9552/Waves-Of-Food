@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -27,10 +28,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var notificationBell: ImageView
     private lateinit var notificationRef: DatabaseReference
+    private lateinit var prefs: SharedPreferences
+
+    private var isNotificationListenerRegistered = false
+    private val PREFS_NAME = "notification_prefs"
+    private val SHOWN_KEYS = "shown_keys"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
         requestNotificationPermission()
         requestExactAlarmPermission()
@@ -52,13 +60,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         val openCart = intent.getBooleanExtra("openCart", false)
-        bottomNavigationView.selectedItemId = if (openCart) R.id.cartFragment else R.id.homeFragment
+        bottomNavigationView.selectedItemId =
+            if (openCart) R.id.cartFragment else R.id.homeFragment
 
         notificationBell.setOnClickListener {
             loadFragment(Notification_Bottom_Fragment())
         }
 
-        listenForOrderNotifications()
+        if (!isNotificationListenerRegistered) {
+            listenForOrderNotifications()
+            isNotificationListenerRegistered = true
+        }
     }
 
     private fun loadFragment(fragment: Fragment) {
@@ -67,32 +79,39 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
-    // ✅ Listen to Firebase notification path for this user
     private fun listenForOrderNotifications() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         notificationRef = FirebaseDatabase.getInstance().reference
             .child("Users").child(userId).child("notifications")
 
-        notificationRef.addChildEventListener(object : ChildEventListener {
+        val childEventListener = object : ChildEventListener {
             override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val key = snapshot.key ?: return
+
+                val shownSet = prefs.getStringSet(SHOWN_KEYS, emptySet()) ?: emptySet()
+                if (shownSet.contains(key)) return
+
                 val title = snapshot.child("title").getValue(String::class.java) ?: "Order Update"
                 val message = snapshot.child("message").getValue(String::class.java) ?: return
 
-                showLocalNotification(title, message)
+                val notifId = key.hashCode()
+                showLocalNotification(title, message, notifId)
 
-                // ✅ Remove notification after showing to prevent duplicate alerts
-                snapshot.ref.removeValue()
+                val updatedSet = shownSet.toMutableSet()
+                updatedSet.add(key)
+                prefs.edit().putStringSet(SHOWN_KEYS, updatedSet).apply()
             }
 
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onChildRemoved(snapshot: DataSnapshot) {}
             override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
             override fun onCancelled(error: DatabaseError) {}
-        })
+        }
+
+        notificationRef.addChildEventListener(childEventListener)
     }
 
-    // ✅ Trigger actual Android notification
-    private fun showLocalNotification(title: String, message: String) {
+    private fun showLocalNotification(title: String, message: String, notificationId: Int) {
         val channelId = "user_order_updates"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -115,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             .setAutoCancel(true)
             .build()
 
-        manager.notify(System.currentTimeMillis().toInt(), notification)
+        manager.notify(notificationId, notification)
     }
 
     private fun requestNotificationPermission() {
