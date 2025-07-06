@@ -8,8 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.wavesoffood.adapter.RecentBuyAdapter
 import com.example.wavesoffood.databinding.ActivityRecentBuyItemsBinding
 import com.example.wavesoffood.model.OrderDetails
-import com.google.firebase.database.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
 
 class RecentBuyItems : AppCompatActivity() {
 
@@ -116,50 +116,41 @@ class RecentBuyItems : AppCompatActivity() {
             return
         }
 
-        val userRef = database.reference.child("Users").child(userId).child("userName")
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val userName = snapshot.getValue(String::class.java) ?: "Customer"
-                var successCount = 0
-                val total = orderDetailsList.size
+        var successCount = 0
+        val total = orderDetailsList.size
 
-                for (item in orderDetailsList) {
-                    val hotelUserId = item.hotelUserId ?: continue
-                    val itemPushKey = item.itemPushkey ?: continue
+        for (item in orderDetailsList) {
+            val hotelUserId = item.hotelUserId ?: continue
+            val itemPushKey = item.itemPushkey ?: continue
+            val userName = item.userNames ?: "Customer"  // ✅ Correctly fetch from item itself
 
-                    val paymentRef = database.reference
-                        .child("Hotel Users").child(hotelUserId)
-                        .child("CompletedOrder").child(itemPushKey)
-                        .child("paymentReceived")
+            val paymentRef = database.reference
+                .child("Hotel Users").child(hotelUserId)
+                .child("CompletedOrder").child(itemPushKey)
+                .child("paymentReceived")
 
-                    paymentRef.setValue(true).addOnSuccessListener {
-                        successCount++
-                        if (successCount == total) {
-                            Toast.makeText(this@RecentBuyItems, "All items marked as received!", Toast.LENGTH_SHORT).show()
-                            binding.markAllReceivedBtn.isEnabled = false
-                        }
-
-                        val notificationRef = database.reference
-                            .child("Hotel Users").child(hotelUserId)
-                            .child("notifications").child(itemPushKey)
-
-                        val notifyMap = mapOf(
-                            "title" to "Payment Received",
-                            "message" to "Payment received from $userName",
-                            "timestamp" to System.currentTimeMillis().toString()
-                        )
-
-                        notificationRef.setValue(notifyMap)
-                    }.addOnFailureListener {
-                        Toast.makeText(this@RecentBuyItems, "Failed to update some orders", Toast.LENGTH_SHORT).show()
-                    }
+            paymentRef.setValue(true).addOnSuccessListener {
+                successCount++
+                if (successCount == total) {
+                    Toast.makeText(this@RecentBuyItems, "All items marked as received!", Toast.LENGTH_SHORT).show()
+                    binding.markAllReceivedBtn.isEnabled = false
                 }
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@RecentBuyItems, "Failed to fetch user data", Toast.LENGTH_SHORT).show()
+                val notificationRef = database.reference
+                    .child("Hotel Users").child(hotelUserId)
+                    .child("notifications").child(itemPushKey)
+
+                val notifyMap = mapOf(
+                    "title" to "Payment Received",
+                    "message" to "Payment received from $userName",
+                    "timestamp" to System.currentTimeMillis().toString()
+                )
+
+                notificationRef.setValue(notifyMap)
+            }.addOnFailureListener {
+                Toast.makeText(this@RecentBuyItems, "Failed to update some orders", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
 
     override fun onBackPressed() {
