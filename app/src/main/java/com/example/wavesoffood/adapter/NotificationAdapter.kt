@@ -13,6 +13,7 @@ class NotificationAdapter(
     private val notificationList: MutableList<AppNotification>
 ) : RecyclerView.Adapter<NotificationAdapter.NotificationViewHolder>() {
 
+    // Deletes item at position and returns it (used for swipe-to-delete)
     fun deleteItem(position: Int): AppNotification? {
         return if (position in notificationList.indices) {
             val item = notificationList.removeAt(position)
@@ -22,7 +23,11 @@ class NotificationAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotificationViewHolder {
-        val binding = NotificationitemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = NotificationitemBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
         return NotificationViewHolder(binding)
     }
 
@@ -35,29 +40,29 @@ class NotificationAdapter(
     inner class NotificationViewHolder(private val binding: NotificationitemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(notification: AppNotification) {
-            binding.notificationtextview.text = notification.title
-            binding.notificationdescription.text = notification.message
-            binding.notificationtime.text = formatTimestamp(notification.timestamp)
+        fun bind(notification: AppNotification) = with(binding) {
+            notificationtextview.text = notification.title.orEmpty()
+            notificationdescription.text = notification.message.orEmpty()
+            notificationtime.text = formatTimestamp(notification.timestamp)
 
-            val titleLower = notification.title.lowercase(Locale.getDefault())
+            // ✅ Fix: Avoid misuse of `it` by using a local variable
+            val titleLower = notification.title?.lowercase(Locale.getDefault()).orEmpty()
             val imageRes = when {
                 "cancel" in titleLower -> R.drawable.sademoji
                 "placed" in titleLower -> R.drawable.group_805
-                "accepted" in titleLower -> R.drawable.shopping_bag // ✅ icon for accepted
-                "dispatched" in titleLower -> R.drawable.car         // ✅ icon for dispatched
+                "accepted" in titleLower -> R.drawable.shopping_bag
+                "dispatched" in titleLower -> R.drawable.car
                 else -> R.drawable.group_805
             }
 
-            binding.notificationinmage.setImageResource(imageRes)
+            notificationinmage.setImageResource(imageRes)
         }
 
         private fun formatTimestamp(timestamp: String?): String {
+            val timeMillis = timestamp?.toLongOrNull() ?: return ""
             return try {
-                val time = timestamp?.toLongOrNull() ?: return ""
                 val sdf = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-                val date = Date(time)
-                sdf.format(date)
+                sdf.format(Date(timeMillis))
             } catch (e: Exception) {
                 ""
             }

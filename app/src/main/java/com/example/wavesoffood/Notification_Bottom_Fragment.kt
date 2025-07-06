@@ -24,6 +24,7 @@ class Notification_Bottom_Fragment : BottomSheetDialogFragment() {
 
     private lateinit var notificationAdapter: NotificationAdapter
     private val notificationList = mutableListOf<AppNotification>()
+    private val keyMap = mutableMapOf<String, String>() // timestamp -> FirebaseKey
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,24 +49,34 @@ class Notification_Bottom_Fragment : BottomSheetDialogFragment() {
 
     private fun fetchNotifications() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val ref = FirebaseDatabase.getInstance().reference
-            .child("Users").child(uid).child("notifications")
+        val ref = FirebaseDatabase.getInstance().getReference("Users").child(uid).child("notifications")
 
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 notificationList.clear()
+                keyMap.clear()
+
                 for (snap in snapshot.children) {
                     val item = snap.getValue(AppNotification::class.java)
-                    item?.let { notificationList.add(it) }
+                    val key = snap.key ?: continue
+                    val timestamp = item?.timestamp
+                    if (!timestamp.isNullOrEmpty()) {
+                        notificationList.add(item)
+                        keyMap[timestamp] = key
+                    }
                 }
 
-                notificationList.sortByDescending { it.timestamp.toLongOrNull() ?: 0 }
+                notificationList.sortByDescending { it.timestamp?.toLongOrNull() ?: 0L }
 
-                notificationAdapter = NotificationAdapter(notificationList)
-                _binding?.notificationrecylerview?.apply {
-                    layoutManager = LinearLayoutManager(requireContext())
-                    adapter = notificationAdapter
-                    setupSwipeToDelete(this)
+                if (!::notificationAdapter.isInitialized) {
+                    notificationAdapter = NotificationAdapter(notificationList)
+                    binding.notificationrecylerview.apply {
+                        layoutManager = LinearLayoutManager(requireContext())
+                        adapter = notificationAdapter
+                        setupSwipeToDelete(this)
+                    }
+                } else {
+                    notificationAdapter.notifyDataSetChanged()
                 }
             }
 
@@ -83,22 +94,22 @@ class Notification_Bottom_Fragment : BottomSheetDialogFragment() {
         val itemTouchHelper = ItemTouchHelper(object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
             override fun onMove(
-                rv: RecyclerView,
-                vh: RecyclerView.ViewHolder,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 val removedItem = notificationAdapter.deleteItem(position)
-                val timestampKey = removedItem?.timestamp ?: return
+                val timestamp = removedItem?.timestamp ?: return
+                val firebaseKey = keyMap[timestamp] ?: return
 
-                FirebaseDatabase.getInstance().reference
-                    .child("Users").child(uid)
-                    .child("notifications").child(timestampKey)
+                FirebaseDatabase.getInstance().getReference("Users")
+                    .child(uid).child("notifications").child(firebaseKey)
                     .removeValue()
                     .addOnFailureListener {
-                        Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Failed to delete notification", Toast.LENGTH_SHORT).show()
                     }
             }
         })
