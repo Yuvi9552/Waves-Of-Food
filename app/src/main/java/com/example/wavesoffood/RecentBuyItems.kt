@@ -9,6 +9,7 @@ import com.example.wavesoffood.adapter.RecentBuyAdapter
 import com.example.wavesoffood.databinding.ActivityRecentBuyItemsBinding
 import com.example.wavesoffood.model.OrderDetails
 import com.google.firebase.database.*
+import com.google.firebase.auth.FirebaseAuth
 
 class RecentBuyItems : AppCompatActivity() {
 
@@ -103,44 +104,62 @@ class RecentBuyItems : AppCompatActivity() {
             }
         }
 
-        // In case no valid item exists
         if (totalToCheck == 0) {
             binding.markAllReceivedBtn.isEnabled = false
         }
     }
 
     private fun markAllOrdersAsReceived() {
-        var successCount = 0
-        val total = orderDetailsList.size
-
-        if (total == 0) {
-            Toast.makeText(this, "No items found", Toast.LENGTH_SHORT).show()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
             return
         }
 
-        for (item in orderDetailsList) {
-            val hotelUserId = item.hotelUserId ?: continue
-            val itemPushKey = item.itemPushkey ?: continue
+        val userRef = database.reference.child("Users").child(userId).child("userName")
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val userName = snapshot.getValue(String::class.java) ?: "Customer"
+                var successCount = 0
+                val total = orderDetailsList.size
 
-            val paymentRef = database.reference
-                .child("Hotel Users")
-                .child(hotelUserId)
-                .child("CompletedOrder")
-                .child(itemPushKey)
-                .child("paymentReceived")
+                for (item in orderDetailsList) {
+                    val hotelUserId = item.hotelUserId ?: continue
+                    val itemPushKey = item.itemPushkey ?: continue
 
-            paymentRef.setValue(true)
-                .addOnSuccessListener {
-                    successCount++
-                    if (successCount == total) {
-                        Toast.makeText(this, "All items marked as received!", Toast.LENGTH_SHORT).show()
-                        binding.markAllReceivedBtn.isEnabled = false
+                    val paymentRef = database.reference
+                        .child("Hotel Users").child(hotelUserId)
+                        .child("CompletedOrder").child(itemPushKey)
+                        .child("paymentReceived")
+
+                    paymentRef.setValue(true).addOnSuccessListener {
+                        successCount++
+                        if (successCount == total) {
+                            Toast.makeText(this@RecentBuyItems, "All items marked as received!", Toast.LENGTH_SHORT).show()
+                            binding.markAllReceivedBtn.isEnabled = false
+                        }
+
+                        val notificationRef = database.reference
+                            .child("Hotel Users").child(hotelUserId)
+                            .child("notifications").child(itemPushKey)
+
+                        val notifyMap = mapOf(
+                            "title" to "Payment Received",
+                            "message" to "Payment received from $userName",
+                            "timestamp" to System.currentTimeMillis().toString()
+                        )
+
+                        notificationRef.setValue(notifyMap)
+                    }.addOnFailureListener {
+                        Toast.makeText(this@RecentBuyItems, "Failed to update some orders", Toast.LENGTH_SHORT).show()
                     }
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to update some orders", Toast.LENGTH_SHORT).show()
-                }
-        }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@RecentBuyItems, "Failed to fetch user data", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onBackPressed() {
