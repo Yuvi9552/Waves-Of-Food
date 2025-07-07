@@ -35,10 +35,8 @@ class CartActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
 
-        // Load items
         retrieveCartItems()
 
-        // Proceed button
         binding.proceedbuttoncart.setOnClickListener {
             getOrderItemsDetails()
         }

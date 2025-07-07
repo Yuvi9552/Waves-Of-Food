@@ -20,7 +20,6 @@ import com.google.firebase.database.*
 class HistoryFragment : Fragment() {
 
     private lateinit var binding: FragmentHistoryBinding
-    private lateinit var buyAgainAdapter: BuyAgainAdapter
     private lateinit var database: FirebaseDatabase
     private lateinit var auth: FirebaseAuth
     private lateinit var userId: String
@@ -36,9 +35,6 @@ class HistoryFragment : Fragment() {
         fetchBuyHistory()
 
         binding.recentbuyitemsdisplay.setOnClickListener { seeItemsRecentBuy() }
-
-        // Removed receivedbutton click and visibility handling
-        // binding.receivedbutton.setOnClickListener { updateAllOrderStatuses() }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -95,47 +91,36 @@ class HistoryFragment : Fragment() {
         binding.recentbuyitemsdisplay.visibility = View.VISIBLE
 
         val recentTime = listOfOrderItem.maxOfOrNull { it.currentTime } ?: return
-        val recentOrder = listOfOrderItem.firstOrNull { it.currentTime == recentTime } ?: return
+        val recentOrders = listOfOrderItem.filter { it.currentTime == recentTime }
+        val recentOrder = recentOrders.firstOrNull() ?: return
 
+        // Set basic info
         binding.buyagainfoodnamehistory.text = recentOrder.foodNames?.firstOrNull() ?: ""
         binding.buyagainfoodpricehistory.text = recentOrder.foodPrices?.firstOrNull() ?: ""
 
+        // Load image
         val imageUrl = recentOrder.foodImages?.firstOrNull()
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this).load(Uri.parse(imageUrl)).into(binding.foodimages)
         }
 
-        // ❌ No longer checking or showing received button
-        // checkIfAnyItemUnpaid(recentTime)
+        // ✅ Set total quantity
+        val totalQuantity = recentOrders.flatMap { it.foodQuantities ?: listOf() }.sum()
+        binding.foodquantityview3.text = totalQuantity.toString()
     }
-
-    // ❌ Fully removed this method
-    // private fun updateAllOrderStatuses() { ... }
-
-    // ❌ Fully removed this method
-    // private fun checkIfAnyItemUnpaid(recentTime: Long) { ... }
 
     private fun setPreviousBuyItemsRecyclerView() {
         if (!isAdded || context == null) return
 
-        val names = mutableListOf<String>()
-        val prices = mutableListOf<String>()
-        val images = mutableListOf<String>()
-
         val recentTime = listOfOrderItem.maxOfOrNull { it.currentTime } ?: return
         val previousItems = listOfOrderItem.filter { it.currentTime < recentTime }
 
-        for (item in previousItems) {
-            item.foodNames?.firstOrNull()?.let { names.add(it) }
-            item.foodPrices?.firstOrNull()?.let { prices.add(it) }
-            item.foodImages?.firstOrNull()?.let { images.add(it) }
-        }
-
-        if (names.isNotEmpty()) {
+        if (previousItems.isNotEmpty()) {
             binding.buyagainrecyler.visibility = View.VISIBLE
             binding.buyagainrecyler.layoutManager = LinearLayoutManager(requireContext())
-            buyAgainAdapter = BuyAgainAdapter(names, prices, images, requireContext())
-            binding.buyagainrecyler.adapter = buyAgainAdapter
+
+            val adapter = BuyAgainAdapter(previousItems, requireContext())
+            binding.buyagainrecyler.adapter = adapter
         } else {
             binding.buyagainrecyler.visibility = View.GONE
         }

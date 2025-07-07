@@ -26,20 +26,26 @@
             android:layout_height="wrap_content"
             android:padding="8dp">
 
-            <!-- Food Image -->
-            <ImageView
-                android:id="@+id/menuImageid"
-                android:layout_width="62dp"
-                android:layout_height="62dp"
+            <!-- ✅ Food Image inside CardView -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/imageCardView"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_marginStart="8dp"
-                android:scaleType="centerCrop"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:srcCompat="@tools:sample/avatars" />
+                app:layout_constraintTop_toTopOf="parent">
 
-            <!-- Food Name -->
+                <ImageView
+                    android:id="@+id/menuImageid"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/menu_2" />
+            </androidx.cardview.widget.CardView>
 
-            <!-- Price -->
+            <!-- ✅ Food Name -->
             <TextView
                 android:id="@+id/menuFoodNameid"
                 android:layout_width="0dp"
@@ -52,10 +58,10 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/menuPriceid"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toEndOf="@id/menuImageid"
+                app:layout_constraintStart_toEndOf="@id/imageCardView"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- ✅ Price -->
             <TextView
                 android:id="@+id/menuPriceid"
                 android:layout_width="wrap_content"
@@ -69,7 +75,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- Add to Cart Button -->
+            <!-- ✅ Add to Cart Button -->
             <TextView
                 android:id="@+id/menuaddtocartid"
                 android:layout_width="80dp"
@@ -83,7 +89,7 @@
                 app:layout_constraintStart_toStartOf="@+id/menuPriceid"
                 app:layout_constraintTop_toBottomOf="@id/menuPriceid" />
 
-            <!-- 🏨 Hotel Name CardView (Inside Food Card) -->
+            <!-- ✅ Hotel Name -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/hotelCardInside"
                 android:layout_width="0dp"
