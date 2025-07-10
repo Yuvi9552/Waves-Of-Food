@@ -6,9 +6,44 @@
     android:background="@drawable/backgroundimage"
     android:padding="12dp">
 
+    <!-- Header Edit Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/edit_profile_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:fontFamily="@font/lato_regular"
+            android:text="Edit Your Profile"
+            android:textColor="@color/green"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/click_to_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginLeft="60dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/lato_regular"
+            android:text="Click Here To Edit"
+            android:textColor="@color/green"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <!-- Main Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
         android:orientation="vertical"
         android:paddingBottom="160dp">
 
@@ -66,8 +101,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="top"
+                android:orientation="horizontal"
                 android:padding="16dp">
 
                 <TextView
@@ -108,8 +143,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:padding="16dp">
 
                 <TextView
@@ -147,8 +182,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:padding="16dp">
 
                 <TextView
@@ -175,12 +210,11 @@
         </androidx.cardview.widget.CardView>
     </LinearLayout>
 
-    <!-- Button Section at Bottom -->
+    <!-- Buttons Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="130dp"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="0dp"
         android:orientation="vertical"
         android:paddingHorizontal="16dp">
 
@@ -199,7 +233,7 @@
             android:textColor="@color/green"
             android:textSize="20sp" />
 
-        <!-- Next Button -->
+        <!-- Logout Button -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/logoutbutton"
             android:layout_width="120dp"

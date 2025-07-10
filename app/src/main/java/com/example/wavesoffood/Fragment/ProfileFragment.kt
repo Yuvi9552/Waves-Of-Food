@@ -29,6 +29,7 @@ class ProfileFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
 
+        disableEditing()
         setUserData()
 
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -45,6 +46,7 @@ class ProfileFragment : Fragment() {
             }
         )
 
+        // Save button
         binding.profilesavebuttonid.setOnClickListener {
             val name = binding.profilenameid.text.toString()
             val email = binding.profileemailid.text.toString()
@@ -53,6 +55,7 @@ class ProfileFragment : Fragment() {
             updateUserData(name, email, address, phone)
         }
 
+        // Logout button
         binding.logoutbutton.setOnClickListener {
             auth.signOut()
             val intent = Intent(requireContext(), LoginActivity::class.java)
@@ -60,7 +63,33 @@ class ProfileFragment : Fragment() {
             startActivity(intent)
         }
 
+        // Click to Edit button
+        binding.clickToEdit.setOnClickListener {
+            toggleEditing()
+        }
+
         return binding.root
+    }
+
+    private fun disableEditing() {
+        binding.profilenameid.isEnabled = false
+        binding.profileemailid.isEnabled = false
+        binding.profilephoneid.isEnabled = false
+        binding.profileaddressid.isEnabled = false
+        binding.profilesavebuttonid.isEnabled = false
+    }
+
+    private fun toggleEditing() {
+        val isEditable = !binding.profilenameid.isEnabled
+        binding.profilenameid.isEnabled = isEditable
+        binding.profileemailid.isEnabled = isEditable
+        binding.profilephoneid.isEnabled = isEditable
+        binding.profileaddressid.isEnabled = isEditable
+        binding.profilesavebuttonid.isEnabled = isEditable
+
+        if (isEditable) {
+            Toast.makeText(requireContext(), "Edit mode enabled", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setUserData() {
@@ -79,23 +108,14 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(
-                    requireContext(),
-                    "Failed to load profile",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(requireContext(), "Failed to load profile", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun updateUserData(
-        name: String,
-        email: String,
-        address: String,
-        phone: String
-    ) {
+    private fun updateUserData(name: String, email: String, address: String, phone: String) {
         val userId = auth.currentUser?.uid ?: return
-        val updates = mapOf<String, Any>(
+        val updates = mapOf(
             "name" to name,
             "email" to email,
             "phone" to phone,
@@ -106,6 +126,7 @@ class ProfileFragment : Fragment() {
             .updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Profile Updated", Toast.LENGTH_SHORT).show()
+                disableEditing() // 🔒 Disable fields after saving
             }
             .addOnFailureListener {
                 Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT).show()
