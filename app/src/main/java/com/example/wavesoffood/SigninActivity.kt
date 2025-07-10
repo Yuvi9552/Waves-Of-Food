@@ -90,16 +90,20 @@ class SigninActivity : AppCompatActivity() {
 
                 currentUser?.sendEmailVerification()?.addOnCompleteListener { verifyTask ->
                     if (verifyTask.isSuccessful) {
+                        saveUserData(username, email, password)
+
                         Toast.makeText(
                             this,
-                            "Account created. Verification email sent to $email",
+                            "Account created. Verification email sent to $email. Please verify before logging in.",
                             Toast.LENGTH_LONG
                         ).show()
 
-                        saveUserData(username, email, password)
+                        // Sign out to prevent auto-login before verification
+                        auth.signOut()
 
-                        val intent = Intent(this, ChooseLocation::class.java)
-                        intent.putExtra("email_verification_pending", true)
+                        // Redirect to LoginActivity
+                        val intent = Intent(this, LoginActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                         startActivity(intent)
                         finish()
                     } else {

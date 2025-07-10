@@ -107,17 +107,24 @@ class ChooseLocation : AppCompatActivity() {
     private fun showGPSDialog() {
         AlertDialog.Builder(this)
             .setTitle("Enable Location Services")
-            .setMessage("To provide better service, please enable:\n\n\u2022 Device Location\n\u2022 High Accuracy Mode")
+            .setMessage("To provide better service, please enable:\n\n• Device Location\n• High Accuracy Mode")
             .setPositiveButton("Turn On") { _, _ ->
                 startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
             .setNegativeButton("No Thanks") { _, _ ->
                 Toast.makeText(this, "Please select location manually", Toast.LENGTH_SHORT).show()
             }
-            .setCancelable(false)
+            .setNeutralButton("Skip") { _, _ ->
+                // Redirect to home activity without location
+                Toast.makeText(this, "Skipped location selection", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            }
+            .setCancelable(true) // Allow tapping outside to cancel
             .create()
             .show()
     }
+
 
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
