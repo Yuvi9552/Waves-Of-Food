@@ -27,9 +27,9 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
     private lateinit var database: FirebaseDatabase
     private val menuItems = mutableListOf<MenuItem>()
 
-    // will hold the user’s position
     private var userLat = 0.0
     private var userLng = 0.0
+    private var isLocationAvailable = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,30 +38,39 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
         _binding = FragmentMenuBottomSheetBinding.inflate(inflater, container, false)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        requestUserLocation { lat, lng ->
-            userLat = lat
-            userLng = lng
-            retrieveNearbyMenuItems()
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            requestUserLocation { lat, lng ->
+                if (!isAdded || _binding == null) return@requestUserLocation
+                userLat = lat
+                userLng = lng
+                isLocationAvailable = true
+                retrieveMenuItems()
+            }
+        } else {
+            retrieveMenuItems() // fallback if no location access
         }
 
         return binding.root
     }
 
-    /** Ask permission and fetch last known location */
     private fun requestUserLocation(onGot: (Double, Double) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 3001)
-            return
-        }
-        fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
-            if (loc != null) onGot(loc.latitude, loc.longitude)
-            else Toast
-                .makeText(context, "Could not determine your location", Toast.LENGTH_SHORT)
-                .show()
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
+                if (!isAdded || _binding == null) return@addOnSuccessListener
+                loc?.let {
+                    onGot(it.latitude, it.longitude)
+                } ?: run {
+                    retrieveMenuItems()
+                }
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            retrieveMenuItems()
         }
     }
 
@@ -70,20 +79,29 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
     ) {
         if (requestCode == 3001 && grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
             requestUserLocation { lat, lng ->
-                userLat = lat; userLng = lng
-                retrieveNearbyMenuItems()
+                if (!isAdded || _binding == null) return@requestUserLocation
+                userLat = lat
+                userLng = lng
+                isLocationAvailable = true
+                retrieveMenuItems()
             }
+        } else {
+            retrieveMenuItems()
         }
     }
 
-    /** Read all hotels, filter by ≤ 5 km, collect their menu items */
-    private fun retrieveNearbyMenuItems() {
+    private fun retrieveMenuItems() {
+        if (!isAdded || _binding == null) return
+
         database = FirebaseDatabase.getInstance()
         val hotelUsersRef = database.reference.child("Hotel Users")
 
         hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded || _binding == null) return
+
                 menuItems.clear()
+
                 for (hotelSnap in snapshot.children) {
                     val addr = hotelSnap.child("address")
                     val lat = addr.child("latitude").getValue(Double::class.java)
@@ -91,35 +109,40 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
                     val hotelName = hotelSnap.child("nameOfResturant")
                         .getValue(String::class.java) ?: "Unknown Hotel"
 
-                    if (lat != null && lng != null &&
+                    val includeHotel = if (isLocationAvailable && lat != null && lng != null) {
                         isWithinRadius(userLat, userLng, lat, lng, 5.0)
-                    ) {
-                        // add all menu items from this hotel
+                    } else true
+
+                    if (includeHotel) {
                         val hotelUserId = hotelSnap.key.orEmpty()
                         for (itemSnap in hotelSnap.child("menu").children) {
                             itemSnap.getValue(MenuItem::class.java)?.let { item ->
                                 menuItems.add(
                                     item.copy(
-                                        hotelUserId   = hotelUserId,
-                                        hotelName     = hotelName,
+                                        hotelUserId = hotelUserId,
+                                        hotelName = hotelName,
                                         hotelLatitude = lat,
-                                        hotelLongitude= lng
+                                        hotelLongitude = lng
                                     )
                                 )
                             }
                         }
                     }
                 }
+
                 setAdapter()
+
+                if (!isLocationAvailable) {
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
+                if (!isAdded || _binding == null) return
                 Toast.makeText(context, "Failed to load menu", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    /** Haversine formula */
     private fun isWithinRadius(
         lat1: Double, lon1: Double,
         lat2: Double, lon2: Double,
@@ -128,16 +151,15 @@ class MenuBottomSheet : BottomSheetDialogFragment() {
         val R = 6371.0
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
-        val a = sin(dLat/2).pow(2.0) +
-                cos(Math.toRadians(lat1)) *
-                cos(Math.toRadians(lat2)) *
-                sin(dLon/2).pow(2.0)
+        val a = sin(dLat / 2).pow(2.0) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2).pow(2.0)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c <= radiusKm
     }
 
-    /** Hook up adapter */
     private fun setAdapter() {
+        if (!isAdded || _binding == null) return
         binding.menurecycler.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = MenuAdapter(menuItems, requireContext())

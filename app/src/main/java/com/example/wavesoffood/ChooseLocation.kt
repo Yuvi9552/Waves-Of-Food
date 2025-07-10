@@ -116,7 +116,6 @@ class ChooseLocation : AppCompatActivity() {
             }
             .setNeutralButton("Skip") { _, _ ->
                 // Redirect to home activity without location
-                Toast.makeText(this, "Skipped location selection", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, MainActivity::class.java))
                 finish()
             }

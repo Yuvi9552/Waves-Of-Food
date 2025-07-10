@@ -13,11 +13,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.denzcoskun.imageslider.interfaces.ItemClickListener
-import com.example.wavesoffood.MenuBottomSheet
 import com.example.wavesoffood.R
 import com.example.wavesoffood.adapter.MenuAdapter
-import com.example.wavesoffood.databinding.FragmentHomeBinding
 import com.example.wavesoffood.databinding.FragmentSearchBinding
 import com.example.wavesoffood.model.MenuItem
 import com.google.android.gms.location.*
@@ -32,6 +29,7 @@ class SearchFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var userLat = 0.0
     private var userLng = 0.0
+    private var isLocationAvailable = false
 
     private lateinit var database: FirebaseDatabase
     private var adapter: MenuAdapter? = null
@@ -62,9 +60,19 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        requestUserLocation { lat, lng ->
-            userLat = lat
-            userLng = lng
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            requestUserLocation { lat, lng ->
+                if (!isAdded || _binding == null) return@requestUserLocation
+                userLat = lat
+                userLng = lng
+                isLocationAvailable = true
+                retrieveMenuItems()
+            }
+        } else {
             retrieveMenuItems()
         }
 
@@ -72,19 +80,18 @@ class SearchFragment : Fragment() {
     }
 
     private fun requestUserLocation(onGot: (Double, Double) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 2001)
-            return
-        }
-        fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
-            if (loc != null) {
-                onGot(loc.latitude, loc.longitude)
-            } else {
-                Toast.makeText(context, "Unable to get location", Toast.LENGTH_SHORT).show()
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
+                if (!isAdded || _binding == null) return@addOnSuccessListener
+                loc?.let {
+                    onGot(it.latitude, it.longitude)
+                } ?: run {
+                    retrieveMenuItems()
+                }
             }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            retrieveMenuItems()
         }
     }
 
@@ -94,10 +101,14 @@ class SearchFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 2001 && grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
             requestUserLocation { lat, lng ->
+                if (!isAdded || _binding == null) return@requestUserLocation
                 userLat = lat
                 userLng = lng
+                isLocationAvailable = true
                 retrieveMenuItems()
             }
+        } else {
+            retrieveMenuItems()
         }
     }
 
@@ -107,7 +118,7 @@ class SearchFragment : Fragment() {
 
         hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (!isAdded) return
+                if (!isAdded || _binding == null) return
 
                 originalMenuItems.clear()
 
@@ -115,10 +126,13 @@ class SearchFragment : Fragment() {
                     val addr = userSnapshot.child("address")
                     val lat = addr.child("latitude").getValue(Double::class.java)
                     val lng = addr.child("longitude").getValue(Double::class.java)
-                    val hotelName = userSnapshot.child("nameOfResturant")
-                        .getValue(String::class.java) ?: "Unknown Hotel"
+                    val hotelName = userSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
 
-                    if (lat != null && lng != null && isWithinRadius(userLat, userLng, lat, lng, 5.0)) {
+                    val isWithin = if (isLocationAvailable && lat != null && lng != null) {
+                        isWithinRadius(userLat, userLng, lat, lng, 5.0)
+                    } else true
+
+                    if (isWithin) {
                         val hotelUserId = userSnapshot.key ?: continue
                         for (itemSnapshot in userSnapshot.child("menu").children) {
                             val menuItem = itemSnapshot.getValue(MenuItem::class.java)
@@ -137,9 +151,15 @@ class SearchFragment : Fragment() {
                 }
 
                 setAdapter(originalMenuItems)
+
+                if (!isLocationAvailable) {
+                }
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                if (!isAdded || _binding == null) return
+                Toast.makeText(context, "Failed to load data", Toast.LENGTH_SHORT).show()
+            }
         })
     }
 
@@ -172,7 +192,6 @@ class SearchFragment : Fragment() {
         setAdapter(filteredList)
     }
 
-    /** Haversine formula check */
     private fun isWithinRadius(
         lat1: Double, lon1: Double,
         lat2: Double, lon2: Double,
@@ -181,10 +200,9 @@ class SearchFragment : Fragment() {
         val R = 6371.0
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
-        val a = sin(dLat/2).pow(2.0) +
-                cos(Math.toRadians(lat1)) *
-                cos(Math.toRadians(lat2)) *
-                sin(dLon/2).pow(2.0)
+        val a = sin(dLat / 2).pow(2.0) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2).pow(2.0)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c <= radiusKm
     }

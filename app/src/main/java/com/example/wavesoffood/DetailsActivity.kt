@@ -59,9 +59,7 @@ class DetailsActivity : AppCompatActivity() {
         binding.addtocartbutton.setOnClickListener { addItemToCart() }
 
         binding.gotocartbutton.setOnClickListener {
-            // ✅ Directly open CartActivity, not MainActivity
-            val intent = Intent(this@DetailsActivity, CartActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this@DetailsActivity, CartActivity::class.java))
             finish()
         }
 
@@ -80,8 +78,15 @@ class DetailsActivity : AppCompatActivity() {
         databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val hotelName = snapshot.child("nameOfResturant").getValue(String::class.java)
-                val hotelAddress = snapshot.child("address").getValue(String::class.java)
                 val hotelPhone = snapshot.child("phone").getValue(String::class.java)
+
+                // ✅ Safely extract 'address' from address map
+                val addressSnapshot = snapshot.child("address")
+                val hotelAddress = if (addressSnapshot.hasChild("address")) {
+                    addressSnapshot.child("address").getValue(String::class.java)
+                } else {
+                    addressSnapshot.getValue(String::class.java)
+                }
 
                 binding.restaurantNameText.text = hotelName ?: "N/A"
                 binding.restaurantAddressText.text = hotelAddress ?: "N/A"

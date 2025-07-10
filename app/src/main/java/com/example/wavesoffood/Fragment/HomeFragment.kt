@@ -34,14 +34,17 @@ class HomeFragment : Fragment() {
 
     private var userLat = 0.0
     private var userLng = 0.0
+    private var isLocationAvailable = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
         binding.viewmenubutton.setOnClickListener {
             MenuBottomSheet().show(parentFragmentManager, null)
         }
+
         return binding.root
     }
 
@@ -49,10 +52,22 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupImageSlider()
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        requestUserLocation { lat, lng ->
-            userLat = lat
-            userLng = lng
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            requestUserLocation { lat, lng ->
+                if (!isAdded || _binding == null) return@requestUserLocation
+                userLat = lat
+                userLng = lng
+                isLocationAvailable = true
+                retrieveAndDisplayMenuItems()
+            }
+        } else {
+            isLocationAvailable = false
             retrieveAndDisplayMenuItems()
         }
     }
@@ -66,22 +81,28 @@ class HomeFragment : Fragment() {
         binding.imageSlider.setImageList(imageList, ScaleTypes.FIT)
         binding.imageSlider.setItemClickListener(object : ItemClickListener {
             override fun onItemSelected(position: Int) {
+                if (!isAdded || _binding == null) return
                 Toast.makeText(requireContext(), "Selected Image $position", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
     private fun requestUserLocation(onGot: (Double, Double) -> Unit) {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1001)
-            return
-        }
-        fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
-            if (loc != null) onGot(loc.latitude, loc.longitude)
-            else Toast.makeText(context, "Unable to get location", Toast.LENGTH_SHORT).show()
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
+                if (!isAdded || _binding == null) return@addOnSuccessListener
+                if (loc != null) {
+                    onGot(loc.latitude, loc.longitude)
+                } else {
+                    isLocationAvailable = false
+                    retrieveAndDisplayMenuItems()
+                }
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            isLocationAvailable = false
+            Toast.makeText(context, "Location permission error", Toast.LENGTH_SHORT).show()
+            retrieveAndDisplayMenuItems()
         }
     }
 
@@ -91,10 +112,15 @@ class HomeFragment : Fragment() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001 && grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
             requestUserLocation { lat, lng ->
+                if (!isAdded || _binding == null) return@requestUserLocation
                 userLat = lat
                 userLng = lng
+                isLocationAvailable = true
                 retrieveAndDisplayMenuItems()
             }
+        } else {
+            isLocationAvailable = false
+            retrieveAndDisplayMenuItems()
         }
     }
 
@@ -104,27 +130,30 @@ class HomeFragment : Fragment() {
 
         hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded || _binding == null) return
+
                 menuItems.clear()
 
                 for (hotelSnap in snapshot.children) {
                     val addr = hotelSnap.child("address")
                     val lat = addr.child("latitude").getValue(Double::class.java)
                     val lng = addr.child("longitude").getValue(Double::class.java)
-                    val hotelName = hotelSnap.child("nameOfResturant")
-                        .getValue(String::class.java) ?: "Unknown Hotel"
+                    val hotelName = hotelSnap.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
 
-                    if (lat != null && lng != null &&
+                    val withinRadius = if (isLocationAvailable && lat != null && lng != null) {
                         isWithinRadius(userLat, userLng, lat, lng, 5.0)
-                    ) {
+                    } else true
+
+                    if (withinRadius) {
                         val menuSnap = hotelSnap.child("menu")
                         for (itemSnap in menuSnap.children) {
                             itemSnap.getValue(MenuItem::class.java)?.let { item ->
                                 menuItems.add(
                                     item.copy(
-                                        hotelUserId   = hotelSnap.key ?: "",
-                                        hotelName     = hotelName,
+                                        hotelUserId = hotelSnap.key ?: "",
+                                        hotelName = hotelName,
                                         hotelLatitude = lat,
-                                        hotelLongitude= lng
+                                        hotelLongitude = lng
                                     )
                                 )
                             }
@@ -132,14 +161,18 @@ class HomeFragment : Fragment() {
                     }
                 }
 
-                // display filtered results
-                binding.popularrecyclerview.layoutManager =
-                    LinearLayoutManager(requireContext())
-                binding.popularrecyclerview.adapter =
-                    MenuAdapter(menuItems, requireContext())
+                if (!isAdded || _binding == null) return
+
+                binding.popularrecyclerview.layoutManager = LinearLayoutManager(requireContext())
+                binding.popularrecyclerview.adapter = MenuAdapter(menuItems, requireContext())
+
+                if (!isLocationAvailable) {
+                    Toast.makeText(requireContext(), "Showing all Hotels", Toast.LENGTH_SHORT).show()
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
+                if (!isAdded || _binding == null) return
                 Toast.makeText(context, "Failed to load menu items.", Toast.LENGTH_SHORT).show()
             }
         })
@@ -154,8 +187,7 @@ class HomeFragment : Fragment() {
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
         val a = sin(dLat / 2).pow(2.0) +
-                cos(Math.toRadians(lat1)) *
-                cos(Math.toRadians(lat2)) *
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
                 sin(dLon / 2).pow(2.0)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c <= radiusKm
