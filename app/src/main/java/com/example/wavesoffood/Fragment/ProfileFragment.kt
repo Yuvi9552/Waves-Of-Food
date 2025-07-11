@@ -46,13 +46,12 @@ class ProfileFragment : Fragment() {
             }
         )
 
-        // Save button
+        // Save button (note: doesn't update address anymore)
         binding.profilesavebuttonid.setOnClickListener {
             val name = binding.profilenameid.text.toString()
             val email = binding.profileemailid.text.toString()
-            val address = binding.profileaddressid.text.toString()
             val phone = binding.profilephoneid.text.toString()
-            updateUserData(name, email, address, phone)
+            updateUserData(name, email, phone)
         }
 
         // Logout button
@@ -75,7 +74,7 @@ class ProfileFragment : Fragment() {
         binding.profilenameid.isEnabled = false
         binding.profileemailid.isEnabled = false
         binding.profilephoneid.isEnabled = false
-        binding.profileaddressid.isEnabled = false
+        binding.profileaddressid.isEnabled = false  // ✅ always non-editable
         binding.profilesavebuttonid.isEnabled = false
     }
 
@@ -84,7 +83,8 @@ class ProfileFragment : Fragment() {
         binding.profilenameid.isEnabled = isEditable
         binding.profileemailid.isEnabled = isEditable
         binding.profilephoneid.isEnabled = isEditable
-        binding.profileaddressid.isEnabled = isEditable
+        // ❌ Don't allow editing address
+        binding.profileaddressid.isEnabled = false
         binding.profilesavebuttonid.isEnabled = isEditable
 
         if (isEditable) {
@@ -92,19 +92,22 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    // ✅ Fetch data and display address from lastLocation.location
     private fun setUserData() {
         val userId = auth.currentUser?.uid ?: return
         val userRef = database.getReference("user").child(userId)
 
-        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        userRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.getValue(UserModel::class.java)?.let {
                     binding.profilenameid.setText(it.name)
                     binding.profileemailid.setText(it.email)
                     binding.profilephoneid.setText(it.phone)
                 }
-                val loc = snapshot.child("location").getValue(String::class.java)
-                binding.profileaddressid.setText(loc ?: "")
+
+                val latestAddress =
+                    snapshot.child("lastLocation").child("location").getValue(String::class.java)
+                binding.profileaddressid.setText(latestAddress ?: "No address available")
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -113,20 +116,21 @@ class ProfileFragment : Fragment() {
         })
     }
 
-    private fun updateUserData(name: String, email: String, address: String, phone: String) {
+    // ✅ Update only name, email, and phone
+    private fun updateUserData(name: String, email: String, phone: String) {
         val userId = auth.currentUser?.uid ?: return
         val updates = mapOf(
             "name" to name,
             "email" to email,
-            "phone" to phone,
-            "location" to address
+            "phone" to phone
+            // ❌ Do NOT update address manually
         )
 
         database.getReference("user").child(userId)
             .updateChildren(updates)
             .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Profile Updated", Toast.LENGTH_SHORT).show()
-                disableEditing() // 🔒 Disable fields after saving
+                disableEditing()
             }
             .addOnFailureListener {
                 Toast.makeText(requireContext(), "Profile Update Failed", Toast.LENGTH_SHORT).show()

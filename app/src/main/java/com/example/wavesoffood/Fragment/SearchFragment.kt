@@ -1,6 +1,7 @@
 package com.example.wavesoffood.Fragment
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -30,15 +31,14 @@ class SearchFragment : Fragment() {
     private var userLat = 0.0
     private var userLng = 0.0
     private var isLocationAvailable = false
+    private var isUsingSavedLocation = false
 
     private lateinit var database: FirebaseDatabase
     private var adapter: MenuAdapter? = null
     private val originalMenuItems = mutableListOf<MenuItem>()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
 
@@ -65,50 +65,62 @@ class SearchFragment : Fragment() {
                 requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            requestUserLocation { lat, lng ->
-                if (!isAdded || _binding == null) return@requestUserLocation
-                userLat = lat
-                userLng = lng
-                isLocationAvailable = true
-                retrieveMenuItems()
-            }
+            requestUserLocation()
         } else {
+            loadSavedLocationOrFallback()
             retrieveMenuItems()
         }
 
         setupSearchView()
     }
 
-    private fun requestUserLocation(onGot: (Double, Double) -> Unit) {
+    private fun requestUserLocation() {
         try {
             fusedLocationClient.lastLocation.addOnSuccessListener { loc: Location? ->
                 if (!isAdded || _binding == null) return@addOnSuccessListener
-                loc?.let {
-                    onGot(it.latitude, it.longitude)
-                } ?: run {
-                    retrieveMenuItems()
+
+                if (loc != null) {
+                    userLat = loc.latitude
+                    userLng = loc.longitude
+                    isLocationAvailable = true
+                    isUsingSavedLocation = false
+                    saveLocationToPrefs(userLat, userLng)
+                } else {
+                    loadSavedLocationOrFallback()
                 }
+
+                retrieveMenuItems()
             }
         } catch (e: SecurityException) {
             e.printStackTrace()
+            loadSavedLocationOrFallback()
             retrieveMenuItems()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 2001 && grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED) {
-            requestUserLocation { lat, lng ->
-                if (!isAdded || _binding == null) return@requestUserLocation
-                userLat = lat
-                userLng = lng
-                isLocationAvailable = true
-                retrieveMenuItems()
-            }
+    private fun saveLocationToPrefs(lat: Double, lng: Double) {
+        val prefs = requireContext().getSharedPreferences("UserLocation", Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putFloat("lat", lat.toFloat())
+            putFloat("lng", lng.toFloat())
+            apply()
+        }
+    }
+
+    private fun loadSavedLocationOrFallback() {
+        val prefs = requireContext().getSharedPreferences("UserLocation", Context.MODE_PRIVATE)
+        val lat = prefs.getFloat("lat", 0f).toDouble()
+        val lng = prefs.getFloat("lng", 0f).toDouble()
+
+        if (lat != 0.0 && lng != 0.0) {
+            userLat = lat
+            userLng = lng
+            isLocationAvailable = true
+            isUsingSavedLocation = true
         } else {
-            retrieveMenuItems()
+            isLocationAvailable = false
+            isUsingSavedLocation = false
+            Toast.makeText(requireContext(), "Showing all Hotels (No location)", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -118,8 +130,6 @@ class SearchFragment : Fragment() {
 
         hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (!isAdded || _binding == null) return
-
                 originalMenuItems.clear()
 
                 for (userSnapshot in snapshot.children) {
@@ -128,21 +138,28 @@ class SearchFragment : Fragment() {
                     val lng = addr.child("longitude").getValue(Double::class.java)
                     val hotelName = userSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
 
-                    val isWithin = if (isLocationAvailable && lat != null && lng != null) {
-                        isWithinRadius(userLat, userLng, lat, lng, 5.0)
-                    } else true
+                    val shouldInclude = if (lat != null && lng != null) {
+                        if (isLocationAvailable && !isUsingSavedLocation) {
+                            isWithinRadius(userLat, userLng, lat, lng, 5.0)
+                        } else true
+                    } else false
 
-                    if (isWithin) {
+                    if (shouldInclude && lat != null && lng != null) {
                         val hotelUserId = userSnapshot.key ?: continue
                         for (itemSnapshot in userSnapshot.child("menu").children) {
                             val menuItem = itemSnapshot.getValue(MenuItem::class.java)
                             menuItem?.let {
+                                val distance = calculateDistance(userLat, userLng, lat, lng) * 1.3
+                                val timeEst = estimateDeliveryTime(distance)
+
                                 originalMenuItems.add(
                                     it.copy(
                                         hotelUserId = hotelUserId,
                                         hotelName = hotelName,
                                         hotelLatitude = lat,
-                                        hotelLongitude = lng
+                                        hotelLongitude = lng,
+                                        distanceInKm = distance,
+                                        estimatedTimeMin = timeEst
                                     )
                                 )
                             }
@@ -151,21 +168,47 @@ class SearchFragment : Fragment() {
                 }
 
                 setAdapter(originalMenuItems)
-
-                if (!isLocationAvailable) {
-                }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                if (!isAdded || _binding == null) return
                 Toast.makeText(context, "Failed to load data", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
+    private fun calculateDistance(
+        lat1: Double, lon1: Double,
+        lat2: Double, lon2: Double
+    ): Double {
+        val R = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a = sin(dLat / 2).pow(2.0) +
+                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+                sin(dLon / 2).pow(2.0)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return R * c
+    }
+
+    private fun estimateDeliveryTime(distanceKm: Double): Int {
+        val bikeSpeedKmPerHour = 30.0
+        val minutesPerKm = 60.0 / bikeSpeedKmPerHour
+        return ceil(distanceKm * minutesPerKm).toInt()
+    }
+
+
+
+
+    private fun isWithinRadius(
+        lat1: Double, lon1: Double,
+        lat2: Double, lon2: Double,
+        radiusKm: Double
+    ): Boolean {
+        return calculateDistance(lat1, lon1, lat2, lon2) <= radiusKm
+    }
+
     private fun setAdapter(menuList: List<MenuItem>) {
-        if (!isAdded || context == null) return
-        adapter = MenuAdapter(menuList, requireContext())
+        adapter = MenuAdapter(menuList, requireContext(), userLat, userLng)
         binding.menurecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.menurecycler.adapter = adapter
     }
@@ -190,21 +233,6 @@ class SearchFragment : Fragment() {
                     it.hotelName?.contains(query, ignoreCase = true) == true
         }
         setAdapter(filteredList)
-    }
-
-    private fun isWithinRadius(
-        lat1: Double, lon1: Double,
-        lat2: Double, lon2: Double,
-        radiusKm: Double
-    ): Boolean {
-        val R = 6371.0
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLon = Math.toRadians(lon2 - lon1)
-        val a = sin(dLat / 2).pow(2.0) +
-                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
-                sin(dLon / 2).pow(2.0)
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return R * c <= radiusKm
     }
 
     override fun onDestroyView() {

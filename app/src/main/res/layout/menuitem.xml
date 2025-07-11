@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:padding="8dp">
 
-            <!-- ✅ Food Image inside CardView -->
+            <!-- ✅ Food Image -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/imageCardView"
                 android:layout_width="64dp"
@@ -51,7 +51,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="10dp"
                 android:fontFamily="@font/lato_regular"
                 android:text="Food Name"
                 android:textColor="@color/black"
@@ -60,6 +60,20 @@
                 app:layout_constraintEnd_toStartOf="@id/menuPriceid"
                 app:layout_constraintStart_toEndOf="@id/imageCardView"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <!-- ✅ Distance + Time -->
+            <TextView
+                android:id="@+id/menuDistanceTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/lato_regular"
+                android:text="15–25 mins • 1.3 km"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                app:layout_constraintStart_toEndOf="@id/imageCardView"
+                app:layout_constraintTop_toBottomOf="@id/menuFoodNameid" />
 
             <!-- ✅ Price -->
             <TextView
@@ -75,7 +89,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- ✅ Add to Cart Button -->
+            <!-- ✅ Add to Cart -->
             <TextView
                 android:id="@+id/menuaddtocartid"
                 android:layout_width="80dp"

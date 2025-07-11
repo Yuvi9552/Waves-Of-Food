@@ -115,15 +115,13 @@ class ChooseLocation : AppCompatActivity() {
                 Toast.makeText(this, "Please select location manually", Toast.LENGTH_SHORT).show()
             }
             .setNeutralButton("Skip") { _, _ ->
-                // Redirect to home activity without location
                 startActivity(Intent(this, MainActivity::class.java))
                 finish()
             }
-            .setCancelable(true) // Allow tapping outside to cancel
+            .setCancelable(true)
             .create()
             .show()
     }
-
 
     private fun getCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -227,21 +225,39 @@ class ChooseLocation : AppCompatActivity() {
             if (user.isEmailVerified) {
                 val uid = user.uid
                 val userRef = FirebaseDatabase.getInstance().reference.child("user").child(uid)
-                userRef.child("location").setValue(location)
-                    .addOnSuccessListener {
-                        if (!isFinishing && !isDestroyed) {
-                            progressDialog.dismiss()
-                            Toast.makeText(this, "Location: $location", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
+
+                val geocoder = Geocoder(this, Locale.getDefault())
+                val addresses = geocoder.getFromLocationName(location, 1)
+
+                if (!addresses.isNullOrEmpty()) {
+                    val lat = addresses[0].latitude
+                    val lng = addresses[0].longitude
+
+                    val locationData = mapOf(
+                        "location" to location,
+                        "latitude" to lat,
+                        "longitude" to lng
+                    )
+
+                    userRef.child("lastLocation").setValue(locationData)
+                        .addOnSuccessListener {
+                            if (!isFinishing && !isDestroyed) {
+                                progressDialog.dismiss()
+                                Toast.makeText(this, "Location: $location", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this, MainActivity::class.java))
+                                finish()
+                            }
                         }
-                    }
-                    .addOnFailureListener {
-                        if (!isFinishing && !isDestroyed) {
-                            progressDialog.dismiss()
-                            Toast.makeText(this, "Failed to save location", Toast.LENGTH_SHORT).show()
+                        .addOnFailureListener {
+                            if (!isFinishing && !isDestroyed) {
+                                progressDialog.dismiss()
+                                Toast.makeText(this, "Failed to save location", Toast.LENGTH_SHORT).show()
+                            }
                         }
-                    }
+                } else {
+                    Toast.makeText(this, "Could not find coordinates for this location", Toast.LENGTH_SHORT).show()
+                    progressDialog.dismiss()
+                }
             } else {
                 progressDialog.dismiss()
                 Toast.makeText(this, "Please verify your email before continuing.", Toast.LENGTH_LONG).show()

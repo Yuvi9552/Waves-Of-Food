@@ -7,13 +7,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.wavesoffood.DetailsActivity
 import com.example.wavesoffood.databinding.MenuitemBinding
 import com.example.wavesoffood.model.MenuItem
 
 class MenuAdapter(
     private val menuItems: List<MenuItem>,
-    private val context: Context
+    private val context: Context,
+    private val userLat: Double,
+    private val userLng: Double
 ) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
@@ -50,13 +53,28 @@ class MenuAdapter(
 
         fun bind(position: Int) {
             val menuItem = menuItems[position]
+
+            // Set basic info
             binding.menuFoodNameid.text = menuItem.foodName ?: "Unnamed Food"
             binding.menuPriceid.text = menuItem.foodPrice ?: "₹0"
             binding.menuHotelNameid.text = menuItem.hotelName ?: "Unknown Hotel"
 
+            // Load food image
             Glide.with(context)
-                .load(Uri.parse(menuItem.foodImage))
+                .load(Uri.parse(menuItem.foodImage ?: ""))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
                 .into(binding.menuImageid)
+
+            // Use pre-calculated distance and time
+            val distance = menuItem.distanceInKm
+            val time = menuItem.estimatedTimeMin
+
+            if (distance != null && time != null) {
+                binding.menuDistanceTimeText.text = String.format("%.1f km • %d min", distance, time)
+            } else {
+                binding.menuDistanceTimeText.text = "Distance Unavailable"
+            }
         }
     }
 }

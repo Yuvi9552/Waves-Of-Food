@@ -11,6 +11,10 @@ data class MenuItem(
     val foodIngredients: String?   = null,
     var hotelName: String?         = null,
     val hotelUserId: String?       = null,
-    val hotelLatitude: Double?     = null,  // added geo-coordinate
-    val hotelLongitude: Double?    = null   // added geo-coordinate
+    val hotelLatitude: Double?     = null,  // hotel geo-coordinate
+    val hotelLongitude: Double?    = null,  // hotel geo-coordinate
+
+    // ✅ New fields to be set during runtime in adapter
+    var distanceInKm: Double?      = null,  // calculated distance
+    var estimatedTimeMin: Int?     = null   // calculated delivery time in minutes
 )
