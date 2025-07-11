@@ -176,6 +176,9 @@ class HomeFragment : Fragment() {
                     }
                 }
 
+                // 🔀 Shuffle the list
+                menuItems.shuffle()
+
                 if (!isAdded || _binding == null) return
 
                 binding.popularrecyclerview.layoutManager = LinearLayoutManager(requireContext())
@@ -225,8 +228,6 @@ class HomeFragment : Fragment() {
         val minutesPerKm = 60.0 / bikeSpeedKmPerHour
         return ceil(distanceKm * minutesPerKm).toInt()
     }
-
-
 
     override fun onDestroyView() {
         super.onDestroyView()

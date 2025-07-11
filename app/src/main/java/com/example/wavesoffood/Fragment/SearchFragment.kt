@@ -120,7 +120,9 @@ class SearchFragment : Fragment() {
         } else {
             isLocationAvailable = false
             isUsingSavedLocation = false
-            Toast.makeText(requireContext(), "Showing all Hotels (No location)", Toast.LENGTH_SHORT).show()
+            if (isAdded) {
+                Toast.makeText(requireContext(), "Showing all Hotels (No location)", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -130,6 +132,8 @@ class SearchFragment : Fragment() {
 
         hotelUsersRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                if (!isAdded || _binding == null) return
+
                 originalMenuItems.clear()
 
                 for (userSnapshot in snapshot.children) {
@@ -167,11 +171,14 @@ class SearchFragment : Fragment() {
                     }
                 }
 
+                if (!isAdded || _binding == null) return
                 setAdapter(originalMenuItems)
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context, "Failed to load data", Toast.LENGTH_SHORT).show()
+                if (isAdded && context != null) {
+                    Toast.makeText(requireContext(), "Failed to load data", Toast.LENGTH_SHORT).show()
+                }
             }
         })
     }
@@ -196,9 +203,6 @@ class SearchFragment : Fragment() {
         return ceil(distanceKm * minutesPerKm).toInt()
     }
 
-
-
-
     private fun isWithinRadius(
         lat1: Double, lon1: Double,
         lat2: Double, lon2: Double,
@@ -208,6 +212,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun setAdapter(menuList: List<MenuItem>) {
+        if (!isAdded || context == null || _binding == null) return
         adapter = MenuAdapter(menuList, requireContext(), userLat, userLng)
         binding.menurecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.menurecycler.adapter = adapter
