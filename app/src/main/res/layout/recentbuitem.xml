@@ -9,7 +9,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardview1"
         android:layout_width="0dp"
-        android:layout_height="87dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="8dp"
@@ -23,8 +23,9 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="85dp"
-            android:elevation="10dp">
+            android:layout_height="wrap_content"
+            android:elevation="10dp"
+            android:paddingBottom="8dp">
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/buyagainfoodbutton2"
@@ -39,18 +40,15 @@
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.818" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardView9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
                 app:cardCornerRadius="15dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/recentbuyhotelcard"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
@@ -60,7 +58,6 @@
                     android:layout_height="64dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/menu_2" />
-
             </androidx.cardview.widget.CardView>
 
             <TextView
@@ -86,7 +83,7 @@
                 android:layout_marginTop="11dp"
                 android:layout_marginBottom="13dp"
                 android:fontFamily="@font/lato_extra_bold"
-                android:text="$5"
+                android:text="₹99"
                 android:textColor="@color/green"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@+id/buyagainfoodbutton2"
@@ -98,17 +95,16 @@
                 android:id="@+id/textView27"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="17dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp"
                 android:fontFamily="@font/lato_regular"
                 android:text="Quantity :"
                 android:textColor="@color/black"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/recentbuyhotelcard"
                 app:layout_constraintEnd_toEndOf="@+id/recentbuyitemfoodname"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="@+id/recentbuyitemfoodname"
-                app:layout_constraintTop_toBottomOf="@+id/recentbuyitemfoodname"
-                app:layout_constraintVertical_bias="1.0" />
+                app:layout_constraintTop_toBottomOf="@+id/recentbuyitemfoodname" />
 
             <TextView
                 android:id="@+id/foodquantityview"
@@ -121,8 +117,49 @@
                 app:layout_constraintBottom_toBottomOf="@+id/textView27"
                 app:layout_constraintStart_toEndOf="@+id/textView27"
                 app:layout_constraintTop_toTopOf="@+id/textView27" />
+
+            <!-- ✅ Hotel Name CardView -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/recentbuyhotelcard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/buyagainfoodbutton2">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/lato_regular"
+                        android:text="Restaurant:"
+                        android:textColor="@color/black"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/recentbuyitemhotelname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:fontFamily="@font/lato_regular"
+                        android:text="Hotel Name"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

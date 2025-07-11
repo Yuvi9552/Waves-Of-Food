@@ -21,14 +21,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Sample Card Preview (Optional Static Preview) -->
+    <!-- Sample Card Preview -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="87dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:cardCornerRadius="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,35 +38,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/recentbuyitemsdisplay"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <!-- ✅ Updated Image Section -->
-
-            <TextView
-                android:id="@+id/foodquantityview3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:fontFamily="@font/lato_regular"
-                android:text="8"
-                android:textColor="@color/green"
-                app:layout_constraintBottom_toBottomOf="@+id/textView32"
-                app:layout_constraintStart_toEndOf="@+id/textView32"
-                app:layout_constraintTop_toTopOf="@+id/textView32" />
-
-            <TextView
-                android:id="@+id/textView32"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:fontFamily="@font/lato_regular"
-                android:text="Quantity :"
-                android:textColor="@color/black"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/buyagainfoodnamehistory"
-                app:layout_constraintStart_toStartOf="@+id/buyagainfoodnamehistory"
-                app:layout_constraintTop_toBottomOf="@+id/buyagainfoodnamehistory" />
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/foodImageCard"
@@ -76,9 +50,9 @@
                 android:layout_marginBottom="8dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
+                app:layout_constraintBottom_toTopOf="@+id/recentbuyhotelcard"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
                     android:id="@+id/foodimages"
@@ -103,38 +77,103 @@
                 app:layout_constraintStart_toEndOf="@id/foodImageCard"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- Quantity Label -->
+            <TextView
+                android:id="@+id/textView32"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/lato_regular"
+                android:text="Quantity :"
+                android:textColor="@color/black"
+                app:layout_constraintStart_toStartOf="@+id/buyagainfoodnamehistory"
+                app:layout_constraintTop_toBottomOf="@id/buyagainfoodnamehistory" />
+
+            <!-- Quantity Value -->
+            <TextView
+                android:id="@+id/foodquantityview3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/lato_regular"
+                android:text="8"
+                android:textColor="@color/green"
+                app:layout_constraintStart_toEndOf="@+id/textView32"
+                app:layout_constraintTop_toTopOf="@+id/textView32"
+                app:layout_constraintBottom_toBottomOf="@+id/textView32" />
+
             <!-- Price -->
-
-            <!-- Circular Order Status Button -->
-
             <TextView
                 android:id="@+id/buyagainfoodpricehistory"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
                 android:fontFamily="@font/lato_regular"
-                android:text="$5"
+                android:text="₹99"
                 android:textColor="@color/green"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toTopOf="@+id/orderstatus"
-                app:layout_constraintEnd_toEndOf="@+id/orderstatus"
-                app:layout_constraintStart_toStartOf="@+id/orderstatus"
+                app:layout_constraintBottom_toTopOf="@id/orderstatus"
+                app:layout_constraintEnd_toEndOf="@id/orderstatus"
+                app:layout_constraintStart_toStartOf="@id/orderstatus"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- Circular Status -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/orderstatus"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_marginEnd="32dp"
+                android:layout_marginBottom="32dp"
                 app:cardBackgroundColor="@color/green"
                 app:cardCornerRadius="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.807">
-                <!-- Optional icon can be added here -->
+                app:layout_constraintVertical_bias="0.807" />
+
+            <!-- ✅ Restaurant Name CardView -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/recentbuyhotelcard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="8dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/foodquantityview3">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/lato_regular"
+                        android:text="Restaurant:"
+                        android:textColor="@color/black"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/recentbuyhotelnamehistory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:fontFamily="@font/lato_regular"
+                        android:text="Hotel Name"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -154,16 +193,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cardView" />
 
-    <!-- RecyclerView for Buy Again Items -->
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/buyagainrecyler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textView28"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/buyagainitem" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
