@@ -9,6 +9,8 @@ class OrderDetails() : Serializable {
     var foodImages: MutableList<String>? = null
     var foodPrices: MutableList<String>? = null
     var foodQuantities: MutableList<Int>? = null
+    var foodDescriptions: MutableList<String>? = null     // ✅ New field
+    var foodIngredients: MutableList<String>? = null      // ✅ New field
     var address: String? = null
     var totalPrices: String? = null
     var phoneNumber: String? = null
@@ -17,7 +19,7 @@ class OrderDetails() : Serializable {
     var itemPushkey: String? = null
     var currentTime: Long = 0
     var hotelUserId: String? = null
-    var hotelName: String? = null // ✅ Added field
+    var hotelName: String? = null
 
     constructor(
         userId: String,
@@ -26,6 +28,8 @@ class OrderDetails() : Serializable {
         foodPrices: MutableList<String>,
         foodImages: MutableList<String>,
         foodQuantities: MutableList<Int>,
+        foodDescriptions: MutableList<String>,        // ✅ Add to constructor
+        foodIngredients: MutableList<String>,         // ✅ Add to constructor
         address: String,
         totalPrices: String,
         phoneNumber: String,
@@ -34,7 +38,7 @@ class OrderDetails() : Serializable {
         orderAccepted: Boolean,
         paymentReceived: Boolean,
         hotelUserId: String? = null,
-        hotelName: String? = null // ✅ Include in constructor
+        hotelName: String? = null
     ) : this() {
         this.userId = userId
         this.userNames = userNames
@@ -42,6 +46,8 @@ class OrderDetails() : Serializable {
         this.foodPrices = foodPrices
         this.foodImages = foodImages
         this.foodQuantities = foodQuantities
+        this.foodDescriptions = foodDescriptions      // ✅ assign values
+        this.foodIngredients = foodIngredients
         this.address = address
         this.totalPrices = totalPrices
         this.phoneNumber = phoneNumber
@@ -50,6 +56,6 @@ class OrderDetails() : Serializable {
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
         this.hotelUserId = hotelUserId
-        this.hotelName = hotelName // ✅ Assign value
+        this.hotelName = hotelName
     }
 }

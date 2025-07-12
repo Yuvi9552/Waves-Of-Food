@@ -10,7 +10,7 @@ data class CartItems(
     var foodDescriptions: String? = null,
     var foodIngredients: String? = null,
     var hotelName: String? = null,
-    var hotelLatitude: Double? = null,   // ✅ NEW
-    var hotelLongitude: Double? = null   // ✅ NEW
+    var hotelUserId: String? = null,         // ✅ Added to support full details in Cart & DetailsActivity
+    var hotelLatitude: Double? = null,
+    var hotelLongitude: Double? = null
 ) : Serializable
-

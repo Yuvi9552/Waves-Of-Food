@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.wavesoffood.CartActivity
+import com.example.wavesoffood.DetailsActivity
 import com.example.wavesoffood.databinding.RecentbuitemBinding
 import com.example.wavesoffood.model.CartItems
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +21,8 @@ class RecentBuyAdapter(
     private val foodImages: ArrayList<String>,
     private val foodPrices: ArrayList<String>,
     private val foodQuantities: ArrayList<Int>,
+    private val foodDescriptions: ArrayList<String>,       // ✅ Add description
+    private val foodIngredients: ArrayList<String>,        // ✅ Add ingredients
     private val hotelNames: ArrayList<String>,
     private val hotelUserId: String?
 ) : RecyclerView.Adapter<RecentBuyAdapter.RecentViewHolder>() {
@@ -42,12 +45,27 @@ class RecentBuyAdapter(
             binding.recentbuyitemfoodname.text = foodNames[position]
             binding.recentbuyitemfoodprice.text = foodPrices[position]
             binding.foodquantityview.text = foodQuantities[position].toString()
-            binding.recentbuyitemhotelname.text = hotelNames[position] // ✅ show hotel name
+            binding.recentbuyitemhotelname.text = hotelNames[position]
 
             Glide.with(context)
                 .load(Uri.parse(foodImages[position]))
                 .into(binding.recentbuyitemfoodimage)
 
+            // ✅ Click on item opens DetailsActivity with proper extras
+            binding.root.setOnClickListener {
+                val intent = Intent(context, DetailsActivity::class.java).apply {
+                    putExtra("MenuItemName", foodNames[position])
+                    putExtra("MenuItemPrice", foodPrices[position])
+                    putExtra("MenuItemImage", foodImages[position])
+                    putExtra("MenuItemDescription", foodDescriptions[position])
+                    putExtra("MenuItemIngredients", foodIngredients[position])
+                    putExtra("HotelUserId", hotelUserId)
+                    putExtra("HotelName", hotelNames[position])
+                }
+                context.startActivity(intent)
+            }
+
+            // ✅ Buy again
             binding.buyagainfoodbutton2.setOnClickListener {
                 val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
                 val cartRef = FirebaseDatabase.getInstance().reference
@@ -65,9 +83,10 @@ class RecentBuyAdapter(
                             foodPrice = foodPrices[position],
                             foodImage = foodImages[position],
                             foodQuantity = foodQuantities[position],
-                            foodDescriptions = "Reordered item",
-                            foodIngredients = "Same as previous",
-                            hotelName = hotelName
+                            foodDescriptions = foodDescriptions[position],       // ✅ Proper value
+                            foodIngredients = foodIngredients[position],         // ✅ Proper value
+                            hotelName = hotelName,
+                            hotelUserId = hotelUserId
                         )
 
                         cartRef.setValue(cartItem).addOnSuccessListener {
@@ -86,8 +105,8 @@ class RecentBuyAdapter(
                         foodPrice = foodPrices[position],
                         foodImage = foodImages[position],
                         foodQuantity = foodQuantities[position],
-                        foodDescriptions = "Reordered item",
-                        foodIngredients = "Same as previous",
+                        foodDescriptions = foodDescriptions[position],
+                        foodIngredients = foodIngredients[position],
                         hotelName = hotelNames[position]
                     )
 

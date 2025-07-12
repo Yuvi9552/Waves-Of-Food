@@ -69,17 +69,9 @@ class PayQuickActivity : AppCompatActivity() {
         databaseRef.child("user").child(user.uid)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    binding.personName.setText(
-                        snapshot.child("name").getValue(String::class.java) ?: ""
-                    )
-                    binding.personPhone.setText(
-                        snapshot.child("phone").getValue(String::class.java) ?: ""
-                    )
-
-                    val addressFromLastLocation = snapshot
-                        .child("lastLocation")
-                        .child("location")
-                        .getValue(String::class.java)
+                    binding.personName.setText(snapshot.child("name").getValue(String::class.java) ?: "")
+                    binding.personPhone.setText(snapshot.child("phone").getValue(String::class.java) ?: "")
+                    val addressFromLastLocation = snapshot.child("lastLocation").child("location").getValue(String::class.java)
                     binding.personAddress.setText(addressFromLastLocation ?: "No address available")
                 }
 
@@ -126,6 +118,8 @@ class PayQuickActivity : AppCompatActivity() {
                     val itemPrices = ArrayList<String>()
                     val itemImages = ArrayList<String>()
                     val itemQuantities = ArrayList<Int>()
+                    val itemDescriptions = ArrayList<String>()
+                    val itemIngredients = ArrayList<String>()
                     var totalForHotel = 0
 
                     for (i in itemIndices) {
@@ -133,11 +127,10 @@ class PayQuickActivity : AppCompatActivity() {
                         itemPrices.add(foodItemPrice[i])
                         itemImages.add(foodItemImage[i])
                         itemQuantities.add(foodItemQuantity[i])
+                        itemDescriptions.add(foodItemDescriptions[i])
+                        itemIngredients.add(foodItemIngredients[i])
 
-                        val price = foodItemPrice[i]
-                            .replace("₹", "")
-                            .replace("[^0-9]".toRegex(), "")
-                            .toIntOrNull() ?: 0
+                        val price = foodItemPrice[i].replace("₹", "").replace("[^0-9]".toRegex(), "").toIntOrNull() ?: 0
                         totalForHotel += price * foodItemQuantity[i]
                     }
 
@@ -149,15 +142,17 @@ class PayQuickActivity : AppCompatActivity() {
                         foodPrices = itemPrices,
                         foodImages = itemImages,
                         foodQuantities = itemQuantities,
+                        foodDescriptions = itemDescriptions,
+                        foodIngredients = itemIngredients,
                         address = personAddress,
-                        totalPrices = "${totalForHotel} ₹",
+                        totalPrices = "$totalForHotel ₹",
                         phoneNumber = personPhone,
                         currentTime = time,
                         itemPushkey = orderKey,
                         orderAccepted = false,
                         paymentReceived = false,
                         hotelUserId = hotelId,
-                        hotelName = hotelName // ✅ ADDED
+                        hotelName = hotelName
                     )
 
                     databaseRef.child("Hotel Users").child(hotelId).child("OrderDetails").child(orderKey).setValue(order)
@@ -172,6 +167,8 @@ class PayQuickActivity : AppCompatActivity() {
                     foodPrices = foodItemPrice,
                     foodImages = foodItemImage,
                     foodQuantities = foodItemQuantity,
+                    foodDescriptions = foodItemDescriptions,
+                    foodIngredients = foodItemIngredients,
                     address = personAddress,
                     totalPrices = totalAmountCalculate,
                     phoneNumber = personPhone,
@@ -180,12 +177,11 @@ class PayQuickActivity : AppCompatActivity() {
                     orderAccepted = false,
                     paymentReceived = false,
                     hotelUserId = null,
-                    hotelName = "Multiple Hotels" // ✅ for full summary
+                    hotelName = "Multiple Hotels"
                 )
+
                 databaseRef.child("orderDetails").child(fullOrderKey).setValue(fullOrder)
-
                 databaseRef.child("user").child(uid).child("CartItems").removeValue()
-
                 CongratsBottomSheet().show(supportFragmentManager, "Congrats")
             }
 
@@ -198,10 +194,7 @@ class PayQuickActivity : AppCompatActivity() {
     private fun calculateTotalAmount(): Int {
         var total = 0
         for (i in foodItemPrice.indices) {
-            val price = foodItemPrice[i]
-                .replace("₹", "")
-                .replace("[^0-9]".toRegex(), "")
-                .toIntOrNull() ?: 0
+            val price = foodItemPrice[i].replace("₹", "").replace("[^0-9]".toRegex(), "").toIntOrNull() ?: 0
             total += price * (foodItemQuantity.getOrNull(i) ?: 1)
         }
         return total

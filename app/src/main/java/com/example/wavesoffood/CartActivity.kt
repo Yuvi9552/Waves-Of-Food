@@ -1,3 +1,4 @@
+// CartActivity.kt
 package com.example.wavesoffood
 
 import android.Manifest
@@ -33,6 +34,7 @@ class CartActivity : AppCompatActivity() {
     private val foodQuantity = mutableListOf<Int>()
     private val foodIngredients = mutableListOf<String>()
     private val hotelNames = mutableListOf<String>()
+    private val hotelUserIds = mutableListOf<String>()  // ✅ Added
     private val itemKeys = mutableListOf<String>()
     private val distanceList = mutableListOf<String>()
     private val timeList = mutableListOf<String>()
@@ -99,6 +101,7 @@ class CartActivity : AppCompatActivity() {
                 foodQuantity.clear()
                 foodIngredients.clear()
                 hotelNames.clear()
+                hotelUserIds.clear()  // ✅ Clear before reusing
                 itemKeys.clear()
                 distanceList.clear()
                 timeList.clear()
@@ -114,10 +117,10 @@ class CartActivity : AppCompatActivity() {
                         foodImages.add(it.foodImage ?: "")
                         foodQuantity.add(it.foodQuantity ?: 1)
                         foodIngredients.add(it.foodIngredients ?: "")
-                        val hotel = it.hotelName ?: "Unknown Hotel"
-                        hotelNames.add(hotel)
+                        hotelNames.add(it.hotelName ?: "Unknown Hotel")
+                        hotelUserIds.add(it.hotelUserId ?: "")  // ✅ Collect hotel user ID
                         itemKeys.add(itemSnapshot.key ?: "")
-                        hotelSet.add(hotel)
+                        hotelSet.add(it.hotelName ?: "")
                     }
                 }
 
@@ -177,7 +180,7 @@ class CartActivity : AppCompatActivity() {
                 cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
                 sin(dLon / 2).pow(2.0)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return R * c * 1.3 // buffer 30% more
+        return R * c * 1.3
     }
 
     private fun estimateDeliveryTime(distanceKm: Double): Int {
@@ -188,17 +191,18 @@ class CartActivity : AppCompatActivity() {
     private fun setAdapter() {
         if (foodNames.isNotEmpty()) {
             cartAdapter = CartAdapter(
-                this,
-                foodNames,
-                foodPrices,
-                foodDescriptions,
-                foodImages,
-                foodQuantity,
-                foodIngredients,
-                hotelNames,
-                distanceList,
-                timeList,
-                itemKeys
+                context = this,
+                foodNames = foodNames,
+                foodPrices = foodPrices,
+                foodDescriptions = foodDescriptions,
+                foodImages = foodImages,
+                foodQuantities = foodQuantity,
+                foodIngredients = foodIngredients,
+                hotelNames = hotelNames,
+                hotelUserIds = hotelUserIds,  // ✅ Pass hotel user IDs
+                distances = distanceList,
+                times = timeList,
+                itemKeys = itemKeys
             )
             binding.cartrecyclerview.layoutManager = LinearLayoutManager(this)
             binding.cartrecyclerview.adapter = cartAdapter

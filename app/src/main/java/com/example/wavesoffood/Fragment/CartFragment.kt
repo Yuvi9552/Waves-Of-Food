@@ -40,6 +40,7 @@ class CartFragment : Fragment() {
     private val foodQuantity = mutableListOf<Int>()
     private val foodIngredients = mutableListOf<String>()
     private val hotelNames = mutableListOf<String>()
+    private val hotelUserIds = mutableListOf<String>() // ✅ NEW
     private val distances = mutableListOf<String>()
     private val times = mutableListOf<String>()
     private val itemKeys = mutableListOf<String>()
@@ -119,6 +120,7 @@ class CartFragment : Fragment() {
                 foodQuantity.clear()
                 foodIngredients.clear()
                 hotelNames.clear()
+                hotelUserIds.clear() // ✅ clear before reuse
                 distances.clear()
                 times.clear()
                 itemKeys.clear()
@@ -134,10 +136,10 @@ class CartFragment : Fragment() {
                         foodImages.add(it.foodImage ?: "")
                         foodQuantity.add(it.foodQuantity ?: 1)
                         foodIngredients.add(it.foodIngredients ?: "")
-                        val hotel = it.hotelName ?: "Unknown Hotel"
-                        hotelNames.add(hotel)
+                        hotelNames.add(it.hotelName ?: "Unknown Hotel")
+                        hotelUserIds.add(it.hotelUserId ?: "Unknown") // ✅ add hotelUserId
                         itemKeys.add(itemSnapshot.key ?: "")
-                        hotelSet.add(hotel)
+                        hotelSet.add(it.hotelName ?: "")
                     }
                 }
 
@@ -218,6 +220,7 @@ class CartFragment : Fragment() {
                 foodQuantity,
                 foodIngredients,
                 hotelNames,
+                hotelUserIds,     // ✅ Added
                 distances,
                 times,
                 itemKeys

@@ -17,11 +17,13 @@ class RecentBuyItems : AppCompatActivity() {
         ActivityRecentBuyItemsBinding.inflate(layoutInflater)
     }
 
-    private var allFoodNames = arrayListOf<String>()
-    private var allFoodImages = arrayListOf<String>()
-    private var allFoodPrices = arrayListOf<String>()
-    private var allFoodQuantities = arrayListOf<Int>()
-    private var allHotelNames = arrayListOf<String>() // ✅ to show hotel name
+    private val allFoodNames = arrayListOf<String>()
+    private val allFoodImages = arrayListOf<String>()
+    private val allFoodPrices = arrayListOf<String>()
+    private val allFoodQuantities = arrayListOf<Int>()
+    private val allFoodDescriptions = arrayListOf<String>()   // ✅ NEW
+    private val allFoodIngredients = arrayListOf<String>()    // ✅ NEW
+    private val allHotelNames = arrayListOf<String>()
     private var orderDetailsList = arrayListOf<OrderDetails>()
     private val database = FirebaseDatabase.getInstance()
     private var hotelUserId: String? = null
@@ -39,10 +41,12 @@ class RecentBuyItems : AppCompatActivity() {
                 allFoodImages.addAll(order.foodImages ?: emptyList())
                 allFoodPrices.addAll(order.foodPrices ?: emptyList())
                 allFoodQuantities.addAll(order.foodQuantities ?: emptyList())
+                allFoodDescriptions.addAll(order.foodDescriptions ?: List(order.foodNames?.size ?: 0) { "No description" }) // ✅ fallback
+                allFoodIngredients.addAll(order.foodIngredients ?: List(order.foodNames?.size ?: 0) { "No ingredients" })   // ✅ fallback
 
                 val count = order.foodNames?.size ?: 0
                 repeat(count) {
-                    allHotelNames.add(order.hotelName ?: "N/A") // ✅ added hotel name
+                    allHotelNames.add(order.hotelName ?: "N/A")
                 }
 
                 hotelUserId = order.hotelUserId
@@ -65,6 +69,8 @@ class RecentBuyItems : AppCompatActivity() {
             allFoodImages,
             allFoodPrices,
             allFoodQuantities,
+            allFoodDescriptions,     // ✅ passed now
+            allFoodIngredients,      // ✅ passed now
             allHotelNames,
             hotelUserId
         )

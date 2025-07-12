@@ -3,7 +3,6 @@ package com.example.wavesoffood
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -24,7 +23,9 @@ class DetailsActivity : AppCompatActivity() {
     private var foodIngredients: String? = null
     private var foodPrice: String? = null
     private var hotelUserId: String? = null
-    private var fetchedHotelName: String? = null // ✅ Store for use in addItemToCart
+    private var fetchedHotelName: String? = null
+    private var hotelPhone: String? = null
+    private var hotelAddress: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,19 +35,22 @@ class DetailsActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        foodName = intent.getStringExtra("MenuItemName")
-        foodDescription = intent.getStringExtra("MenuItemDescription")
-        foodIngredients = intent.getStringExtra("MenuItemIngredients")
-        foodPrice = intent.getStringExtra("MenuItemPrice")
-        foodImage = intent.getStringExtra("MenuItemImage")
-        hotelUserId = intent.getStringExtra("HotelUserId")
+        // ✅ Read data from intent (support both key formats)
+        foodName = intent.getStringExtra("MenuItemName") ?: intent.getStringExtra("foodName")
+        foodDescription = intent.getStringExtra("MenuItemDescription") ?: intent.getStringExtra("foodDescription")
+        foodIngredients = intent.getStringExtra("MenuItemIngredients") ?: intent.getStringExtra("foodIngredients")
+        foodPrice = intent.getStringExtra("MenuItemPrice") ?: intent.getStringExtra("foodPrice")
+        foodImage = intent.getStringExtra("MenuItemImage") ?: intent.getStringExtra("foodImage")
+        hotelUserId = intent.getStringExtra("HotelUserId") ?: intent.getStringExtra("hotelUserId")
+        fetchedHotelName = intent.getStringExtra("HotelName") ?: intent.getStringExtra("hotelName")
 
+        // ✅ Set UI content
         binding.detailefoodname.text = foodName ?: "No Name"
         binding.descriptiontext.text = foodDescription ?: "No Description"
         binding.ingridientstext.text = foodIngredients ?: "No Ingredients"
 
         Glide.with(this)
-            .load(Uri.parse(foodImage))
+            .load(Uri.parse(foodImage ?: ""))
             .into(binding.descriptionimage)
 
         binding.descriptionimage.setOnClickListener { finish() }
@@ -58,8 +62,14 @@ class DetailsActivity : AppCompatActivity() {
             finish()
         }
 
+        // ✅ Fetch hotel details if user ID is available
         if (!hotelUserId.isNullOrEmpty()) {
             fetchHotelDetails(hotelUserId!!)
+        } else {
+            // Fallback UI
+            binding.restaurantNameText.text = fetchedHotelName ?: "N/A"
+            binding.restaurantAddressText.text = "N/A"
+            binding.restaurantPhoneText.text = "N/A"
         }
     }
 
@@ -70,17 +80,12 @@ class DetailsActivity : AppCompatActivity() {
 
         databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                fetchedHotelName = snapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown"
-                val hotelPhone = snapshot.child("phone").getValue(String::class.java)
+                fetchedHotelName = snapshot.child("nameOfResturant").getValue(String::class.java) ?: fetchedHotelName
+                hotelPhone = snapshot.child("phone").getValue(String::class.java)
+                hotelAddress = snapshot.child("address").child("address").getValue(String::class.java)
+                    ?: snapshot.child("address").getValue(String::class.java)
 
-                val addressSnapshot = snapshot.child("address")
-                val hotelAddress = if (addressSnapshot.hasChild("address")) {
-                    addressSnapshot.child("address").getValue(String::class.java)
-                } else {
-                    addressSnapshot.getValue(String::class.java)
-                }
-
-                binding.restaurantNameText.text = fetchedHotelName
+                binding.restaurantNameText.text = fetchedHotelName ?: "N/A"
                 binding.restaurantAddressText.text = hotelAddress ?: "N/A"
                 binding.restaurantPhoneText.text = hotelPhone ?: "N/A"
             }
@@ -102,7 +107,8 @@ class DetailsActivity : AppCompatActivity() {
             foodImage = foodImage,
             foodQuantity = 1,
             foodIngredients = foodIngredients,
-            hotelName = fetchedHotelName // ✅ Added
+            hotelName = fetchedHotelName,
+            hotelUserId = hotelUserId // ✅ Include hotelUserId
         )
 
         database.child("user").child(userId).child("CartItems").push()
