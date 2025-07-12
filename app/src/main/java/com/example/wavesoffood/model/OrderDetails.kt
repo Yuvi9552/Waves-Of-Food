@@ -17,6 +17,7 @@ class OrderDetails() : Serializable {
     var itemPushkey: String? = null
     var currentTime: Long = 0
     var hotelUserId: String? = null
+    var hotelName: String? = null // ✅ Added field
 
     constructor(
         userId: String,
@@ -32,7 +33,8 @@ class OrderDetails() : Serializable {
         itemPushkey: String?,
         orderAccepted: Boolean,
         paymentReceived: Boolean,
-        hotelUserId: String? = null
+        hotelUserId: String? = null,
+        hotelName: String? = null // ✅ Include in constructor
     ) : this() {
         this.userId = userId
         this.userNames = userNames
@@ -48,5 +50,6 @@ class OrderDetails() : Serializable {
         this.orderAccepted = orderAccepted
         this.paymentReceived = paymentReceived
         this.hotelUserId = hotelUserId
+        this.hotelName = hotelName // ✅ Assign value
     }
 }

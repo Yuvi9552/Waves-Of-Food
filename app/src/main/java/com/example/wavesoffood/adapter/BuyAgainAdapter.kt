@@ -37,33 +37,64 @@ class BuyAgainAdapter(
 
         fun bind(order: OrderDetails) {
             val name = order.foodNames?.firstOrNull() ?: "Food"
-            val price = order.foodPrices?.firstOrNull() ?: "$0"
+            val price = order.foodPrices?.firstOrNull() ?: "₹0"
             val image = order.foodImages?.firstOrNull()
-            val quantity = order.foodQuantities?.sum() ?: 0
+            val quantity = order.foodQuantities?.firstOrNull() ?: 1
+            val hotelUserId = order.hotelUserId
+            val fallbackHotelName = order.hotelName ?: "N/A"
 
             binding.buyagainfoodname.text = name
             binding.buyagainfoodprice.text = price
             binding.foodquantityview2.text = quantity.toString()
+            binding.buyagainhotelname.text = fallbackHotelName
 
             if (!image.isNullOrEmpty()) {
                 Glide.with(context).load(Uri.parse(image)).into(binding.buyagaianfoodimage)
             }
 
-            // Reorder button
             binding.buyagainfoodbutton.setOnClickListener {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val cartRef = FirebaseDatabase.getInstance().reference
-                        .child("user").child(userId).child("CartItems")
-                        .push()
+                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+                val cartRef = FirebaseDatabase.getInstance().reference
+                    .child("user").child(userId).child("CartItems").push()
 
+                if (!hotelUserId.isNullOrEmpty()) {
+                    val hotelRef = FirebaseDatabase.getInstance().reference
+                        .child("Hotel Users").child(hotelUserId).child("nameOfResturant")
+
+                    hotelRef.get().addOnSuccessListener { snapshot ->
+                        val hotelName = snapshot.getValue(String::class.java) ?: fallbackHotelName
+                        binding.buyagainhotelname.text = hotelName
+
+                        val cartItem = CartItems(
+                            foodNames = name,
+                            foodPrice = price,
+                            foodImage = image,
+                            foodQuantity = quantity,
+                            foodDescriptions = "Reordered item",
+                            foodIngredients = "Same as previous",
+                            hotelName = hotelName
+                        )
+
+                        cartRef.setValue(cartItem).addOnSuccessListener {
+                            Toast.makeText(context, "Item added to cart", Toast.LENGTH_SHORT).show()
+                            context.startActivity(Intent(context, CartActivity::class.java))
+                        }.addOnFailureListener {
+                            Toast.makeText(context, "Failed to add to cart", Toast.LENGTH_SHORT).show()
+                        }
+
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Failed to get hotel info", Toast.LENGTH_SHORT).show()
+                    }
+
+                } else {
                     val cartItem = CartItems(
                         foodNames = name,
                         foodPrice = price,
-                        foodImage = image ?: "",
+                        foodImage = image,
                         foodQuantity = quantity,
                         foodDescriptions = "Reordered item",
-                        foodIngredients = "Same as previous"
+                        foodIngredients = "Same as previous",
+                        hotelName = fallbackHotelName
                     )
 
                     cartRef.setValue(cartItem).addOnSuccessListener {
@@ -75,7 +106,6 @@ class BuyAgainAdapter(
                 }
             }
 
-            // On item tap → open full order in RecentBuyItems activity
             binding.root.setOnClickListener {
                 val intent = Intent(context, RecentBuyItems::class.java)
                 intent.putExtra("RecentBuyOrderItem", arrayListOf(order))

@@ -36,10 +36,8 @@ class PayQuickActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         databaseRef = FirebaseDatabase.getInstance().reference
 
-        // Disable editing of address field
         binding.personAddress.isEnabled = false
 
-        // Retrieve cart details from intent
         foodItemName = intent.getStringArrayListExtra("FoodItemName") ?: arrayListOf()
         foodItemPrice = intent.getStringArrayListExtra("FoodItemPrice") ?: arrayListOf()
         foodItemImage = intent.getStringArrayListExtra("FoodItemImage") ?: arrayListOf()
@@ -47,10 +45,8 @@ class PayQuickActivity : AppCompatActivity() {
         foodItemIngredients = intent.getStringArrayListExtra("FoodItemIngredients") ?: arrayListOf()
         foodItemQuantity = intent.getIntegerArrayListExtra("FoodItemQuantity") ?: arrayListOf()
 
-        // Prefill user details including saved location
         setUserData()
 
-        // Show total amount
         totalAmountCalculate = "${calculateTotalAmount()} ₹"
         binding.totalcalculateamount.setText(totalAmountCalculate)
         binding.totalcalculateamount.isEnabled = false
@@ -80,7 +76,6 @@ class PayQuickActivity : AppCompatActivity() {
                         snapshot.child("phone").getValue(String::class.java) ?: ""
                     )
 
-                    // ✅ Load address from lastLocation.location
                     val addressFromLastLocation = snapshot
                         .child("lastLocation")
                         .child("location")
@@ -124,6 +119,9 @@ class PayQuickActivity : AppCompatActivity() {
                 }
 
                 for ((hotelId, itemIndices) in foodMapByHotel) {
+                    val hotelSnapshot = snapshot.child(hotelId)
+                    val hotelName = hotelSnapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown Hotel"
+
                     val itemNames = ArrayList<String>()
                     val itemPrices = ArrayList<String>()
                     val itemImages = ArrayList<String>()
@@ -135,6 +133,7 @@ class PayQuickActivity : AppCompatActivity() {
                         itemPrices.add(foodItemPrice[i])
                         itemImages.add(foodItemImage[i])
                         itemQuantities.add(foodItemQuantity[i])
+
                         val price = foodItemPrice[i]
                             .replace("₹", "")
                             .replace("[^0-9]".toRegex(), "")
@@ -157,7 +156,8 @@ class PayQuickActivity : AppCompatActivity() {
                         itemPushkey = orderKey,
                         orderAccepted = false,
                         paymentReceived = false,
-                        hotelUserId = hotelId
+                        hotelUserId = hotelId,
+                        hotelName = hotelName // ✅ ADDED
                     )
 
                     databaseRef.child("Hotel Users").child(hotelId).child("OrderDetails").child(orderKey).setValue(order)
@@ -179,7 +179,8 @@ class PayQuickActivity : AppCompatActivity() {
                     itemPushkey = fullOrderKey,
                     orderAccepted = false,
                     paymentReceived = false,
-                    hotelUserId = null
+                    hotelUserId = null,
+                    hotelName = "Multiple Hotels" // ✅ for full summary
                 )
                 databaseRef.child("orderDetails").child(fullOrderKey).setValue(fullOrder)
 

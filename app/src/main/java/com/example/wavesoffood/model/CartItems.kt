@@ -8,5 +8,6 @@ data class CartItems(
     var foodImage: String? = null,
     var foodQuantity: Int? = null,
     var foodDescriptions: String? = null,
-    var foodIngredients: String? = null
+    var foodIngredients: String? = null,
+    var hotelName: String? = null // ✅ New field
 ) : Serializable

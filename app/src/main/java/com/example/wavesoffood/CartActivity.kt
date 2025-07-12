@@ -25,6 +25,7 @@ class CartActivity : AppCompatActivity() {
     private val foodImages = mutableListOf<String>()
     private val foodQuantity = mutableListOf<Int>()
     private val foodIngredients = mutableListOf<String>()
+    private val hotelNames = mutableListOf<String>() // ✅ Added hotel name list
     private val itemKeys = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +55,7 @@ class CartActivity : AppCompatActivity() {
                 foodImages.clear()
                 foodQuantity.clear()
                 foodIngredients.clear()
+                hotelNames.clear() // ✅ Clear hotel names
                 itemKeys.clear()
 
                 for (itemSnapshot in snapshot.children) {
@@ -65,12 +67,23 @@ class CartActivity : AppCompatActivity() {
                         foodImages.add(it.foodImage ?: "")
                         foodQuantity.add(it.foodQuantity ?: 1)
                         foodIngredients.add(it.foodIngredients ?: "")
+                        hotelNames.add(it.hotelName ?: "N/A") // ✅ Fetch hotel name
                         itemKeys.add(itemSnapshot.key ?: "")
                     }
                 }
 
                 if (foodNames.isNotEmpty()) {
-                    cartAdapter = CartAdapter(this@CartActivity, foodNames, foodPrices, foodDescriptions, foodImages, foodQuantity, foodIngredients, itemKeys)
+                    cartAdapter = CartAdapter(
+                        this@CartActivity,
+                        foodNames,
+                        foodPrices,
+                        foodDescriptions,
+                        foodImages,
+                        foodQuantity,
+                        foodIngredients,
+                        hotelNames, // ✅ Pass to adapter
+                        itemKeys
+                    )
                     binding.cartrecyclerview.layoutManager = LinearLayoutManager(this@CartActivity)
                     binding.cartrecyclerview.adapter = cartAdapter
                     binding.cartrecyclerview.visibility = View.VISIBLE

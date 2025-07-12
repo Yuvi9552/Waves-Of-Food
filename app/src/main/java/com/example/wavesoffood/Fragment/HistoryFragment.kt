@@ -94,7 +94,7 @@ class HistoryFragment : Fragment() {
         val recentOrders = listOfOrderItem.filter { it.currentTime == recentTime }
         val recentOrder = recentOrders.firstOrNull() ?: return
 
-        // Set basic info
+        // Set food details
         binding.buyagainfoodnamehistory.text = recentOrder.foodNames?.firstOrNull() ?: ""
         binding.buyagainfoodpricehistory.text = recentOrder.foodPrices?.firstOrNull() ?: ""
 
@@ -104,9 +104,12 @@ class HistoryFragment : Fragment() {
             Glide.with(this).load(Uri.parse(imageUrl)).into(binding.foodimages)
         }
 
-        // ✅ Set total quantity
+        // Set quantity
         val totalQuantity = recentOrders.flatMap { it.foodQuantities ?: listOf() }.sum()
         binding.foodquantityview3.text = totalQuantity.toString()
+
+        // ✅ Set hotel name
+        binding.recentbuyhotelnamehistory.text = recentOrder.hotelName ?: "Hotel"
     }
 
     private fun setPreviousBuyItemsRecyclerView() {

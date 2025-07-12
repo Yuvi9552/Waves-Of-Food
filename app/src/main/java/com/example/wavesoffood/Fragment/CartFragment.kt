@@ -28,6 +28,7 @@ class CartFragment : Fragment() {
     private val foodImages = mutableListOf<String>()
     private val foodQuantity = mutableListOf<Int>()
     private val foodIngredients = mutableListOf<String>()
+    private val hotelNames = mutableListOf<String>() // ✅ Added this list
     private val itemKeys = mutableListOf<String>()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -35,15 +36,12 @@ class CartFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
 
-        // ✅ Load items from Firebase
         retrieveCartItems()
 
-        // ✅ Proceed button to PayQuickActivity
         binding.proceedbuttoncart.setOnClickListener {
             getOrderItemsDetails()
         }
 
-        // ✅ Back navigation to HomeFragment
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 parentFragmentManager.beginTransaction()
@@ -63,13 +61,13 @@ class CartFragment : Fragment() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!isAdded || context == null) return
 
-                // Clear previous lists
                 foodNames.clear()
                 foodPrices.clear()
                 foodDescriptions.clear()
                 foodImages.clear()
                 foodQuantity.clear()
                 foodIngredients.clear()
+                hotelNames.clear() // ✅ Clear this too
                 itemKeys.clear()
 
                 for (itemSnapshot in snapshot.children) {
@@ -81,13 +79,23 @@ class CartFragment : Fragment() {
                         foodImages.add(it.foodImage ?: "")
                         foodQuantity.add(it.foodQuantity ?: 1)
                         foodIngredients.add(it.foodIngredients ?: "")
+                        hotelNames.add(it.hotelName ?: "N/A") // ✅ Fetch hotel name
                         itemKeys.add(itemSnapshot.key ?: "")
                     }
                 }
 
-                // Show cart items
                 if (foodNames.isNotEmpty()) {
-                    cartAdapter = CartAdapter(requireContext(), foodNames, foodPrices, foodDescriptions, foodImages, foodQuantity, foodIngredients, itemKeys)
+                    cartAdapter = CartAdapter(
+                        requireContext(),
+                        foodNames,
+                        foodPrices,
+                        foodDescriptions,
+                        foodImages,
+                        foodQuantity,
+                        foodIngredients,
+                        hotelNames, // ✅ Pass hotel names to adapter
+                        itemKeys
+                    )
                     binding.cartrecyclerview.layoutManager = LinearLayoutManager(requireContext())
                     binding.cartrecyclerview.adapter = cartAdapter
                     binding.cartrecyclerview.visibility = View.VISIBLE

@@ -20,6 +20,7 @@ class CartAdapter(
     private val foodImages: MutableList<String>,
     private val foodQuantities: MutableList<Int>,
     private val foodIngredients: MutableList<String>,
+    private val hotelNames: MutableList<String>, // ✅ Added
     private val itemKeys: MutableList<String>
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
@@ -50,6 +51,9 @@ class CartAdapter(
             binding.cartfoodname.text = foodNames[position]
             binding.cartitemprice.text = foodPrices[position]
             binding.cartitemquantity.text = foodQuantities[position].toString()
+
+            // ✅ Set hotel name
+            binding.cartHotelName.text = hotelNames[position]
 
             Glide.with(context)
                 .load(Uri.parse(foodImages[position]))
@@ -99,6 +103,7 @@ class CartAdapter(
                     foodImages.removeAt(position)
                     foodQuantities.removeAt(position)
                     foodIngredients.removeAt(position)
+                    hotelNames.removeAt(position) // ✅ Remove hotel name
                     itemKeys.removeAt(position)
 
                     notifyItemRemoved(position)

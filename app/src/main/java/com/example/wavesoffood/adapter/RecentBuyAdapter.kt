@@ -19,7 +19,9 @@ class RecentBuyAdapter(
     private val foodNames: ArrayList<String>,
     private val foodImages: ArrayList<String>,
     private val foodPrices: ArrayList<String>,
-    private val foodQuantities: ArrayList<Int>
+    private val foodQuantities: ArrayList<Int>,
+    private val hotelNames: ArrayList<String>,
+    private val hotelUserId: String?
 ) : RecyclerView.Adapter<RecentBuyAdapter.RecentViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecentViewHolder {
@@ -40,25 +42,53 @@ class RecentBuyAdapter(
             binding.recentbuyitemfoodname.text = foodNames[position]
             binding.recentbuyitemfoodprice.text = foodPrices[position]
             binding.foodquantityview.text = foodQuantities[position].toString()
+            binding.recentbuyitemhotelname.text = hotelNames[position] // ✅ show hotel name
 
             Glide.with(context)
                 .load(Uri.parse(foodImages[position]))
                 .into(binding.recentbuyitemfoodimage)
 
             binding.buyagainfoodbutton2.setOnClickListener {
-                val userId = FirebaseAuth.getInstance().currentUser?.uid
-                if (userId != null) {
-                    val cartRef = FirebaseDatabase.getInstance().reference
-                        .child("user").child(userId).child("CartItems")
-                        .push()
+                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+                val cartRef = FirebaseDatabase.getInstance().reference
+                    .child("user").child(userId).child("CartItems").push()
 
+                if (!hotelUserId.isNullOrEmpty()) {
+                    val hotelRef = FirebaseDatabase.getInstance().reference
+                        .child("Hotel Users").child(hotelUserId).child("nameOfResturant")
+
+                    hotelRef.get().addOnSuccessListener { snapshot ->
+                        val hotelName = snapshot.getValue(String::class.java) ?: hotelNames[position]
+
+                        val cartItem = CartItems(
+                            foodNames = foodNames[position],
+                            foodPrice = foodPrices[position],
+                            foodImage = foodImages[position],
+                            foodQuantity = foodQuantities[position],
+                            foodDescriptions = "Reordered item",
+                            foodIngredients = "Same as previous",
+                            hotelName = hotelName
+                        )
+
+                        cartRef.setValue(cartItem).addOnSuccessListener {
+                            Toast.makeText(context, "Item added to cart", Toast.LENGTH_SHORT).show()
+                            context.startActivity(Intent(context, CartActivity::class.java))
+                        }.addOnFailureListener {
+                            Toast.makeText(context, "Failed to add to cart", Toast.LENGTH_SHORT).show()
+                        }
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Failed to get hotel info", Toast.LENGTH_SHORT).show()
+                    }
+
+                } else {
                     val cartItem = CartItems(
                         foodNames = foodNames[position],
                         foodPrice = foodPrices[position],
                         foodImage = foodImages[position],
                         foodQuantity = foodQuantities[position],
                         foodDescriptions = "Reordered item",
-                        foodIngredients = "Same as previous"
+                        foodIngredients = "Same as previous",
+                        hotelName = hotelNames[position]
                     )
 
                     cartRef.setValue(cartItem).addOnSuccessListener {

@@ -21,8 +21,10 @@ class RecentBuyItems : AppCompatActivity() {
     private var allFoodImages = arrayListOf<String>()
     private var allFoodPrices = arrayListOf<String>()
     private var allFoodQuantities = arrayListOf<Int>()
+    private var allHotelNames = arrayListOf<String>() // ✅ to show hotel name
     private var orderDetailsList = arrayListOf<OrderDetails>()
     private val database = FirebaseDatabase.getInstance()
+    private var hotelUserId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +39,13 @@ class RecentBuyItems : AppCompatActivity() {
                 allFoodImages.addAll(order.foodImages ?: emptyList())
                 allFoodPrices.addAll(order.foodPrices ?: emptyList())
                 allFoodQuantities.addAll(order.foodQuantities ?: emptyList())
+
+                val count = order.foodNames?.size ?: 0
+                repeat(count) {
+                    allHotelNames.add(order.hotelName ?: "N/A") // ✅ added hotel name
+                }
+
+                hotelUserId = order.hotelUserId
             }
         }
 
@@ -55,7 +64,9 @@ class RecentBuyItems : AppCompatActivity() {
             allFoodNames,
             allFoodImages,
             allFoodPrices,
-            allFoodQuantities
+            allFoodQuantities,
+            allHotelNames,
+            hotelUserId
         )
     }
 
@@ -122,7 +133,7 @@ class RecentBuyItems : AppCompatActivity() {
         for (item in orderDetailsList) {
             val hotelUserId = item.hotelUserId ?: continue
             val itemPushKey = item.itemPushkey ?: continue
-            val userName = item.userNames ?: "Customer"  // ✅ Correctly fetch from item itself
+            val userName = item.userNames ?: "Customer"
 
             val paymentRef = database.reference
                 .child("Hotel Users").child(hotelUserId)

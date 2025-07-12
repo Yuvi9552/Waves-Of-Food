@@ -24,6 +24,7 @@ class DetailsActivity : AppCompatActivity() {
     private var foodIngredients: String? = null
     private var foodPrice: String? = null
     private var hotelUserId: String? = null
+    private var fetchedHotelName: String? = null // ✅ Store for use in addItemToCart
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,7 +34,6 @@ class DetailsActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        // Get Intent Data
         foodName = intent.getStringExtra("MenuItemName")
         foodDescription = intent.getStringExtra("MenuItemDescription")
         foodIngredients = intent.getStringExtra("MenuItemIngredients")
@@ -41,18 +41,13 @@ class DetailsActivity : AppCompatActivity() {
         foodImage = intent.getStringExtra("MenuItemImage")
         hotelUserId = intent.getStringExtra("HotelUserId")
 
-        // Set Food Details
         binding.detailefoodname.text = foodName ?: "No Name"
         binding.descriptiontext.text = foodDescription ?: "No Description"
         binding.ingridientstext.text = foodIngredients ?: "No Ingredients"
 
-        try {
-            Glide.with(this)
-                .load(Uri.parse(foodImage))
-                .into(binding.descriptionimage)
-        } catch (e: Exception) {
-            Log.e("DetailsActivity", "Image load error: ${e.localizedMessage}")
-        }
+        Glide.with(this)
+            .load(Uri.parse(foodImage))
+            .into(binding.descriptionimage)
 
         binding.descriptionimage.setOnClickListener { finish() }
 
@@ -65,8 +60,6 @@ class DetailsActivity : AppCompatActivity() {
 
         if (!hotelUserId.isNullOrEmpty()) {
             fetchHotelDetails(hotelUserId!!)
-        } else {
-            Log.e("DetailsActivity", "HotelUserId is NULL or EMPTY. Cannot fetch hotel data.")
         }
     }
 
@@ -77,10 +70,9 @@ class DetailsActivity : AppCompatActivity() {
 
         databaseRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val hotelName = snapshot.child("nameOfResturant").getValue(String::class.java)
+                fetchedHotelName = snapshot.child("nameOfResturant").getValue(String::class.java) ?: "Unknown"
                 val hotelPhone = snapshot.child("phone").getValue(String::class.java)
 
-                // ✅ Safely extract 'address' from address map
                 val addressSnapshot = snapshot.child("address")
                 val hotelAddress = if (addressSnapshot.hasChild("address")) {
                     addressSnapshot.child("address").getValue(String::class.java)
@@ -88,13 +80,12 @@ class DetailsActivity : AppCompatActivity() {
                     addressSnapshot.getValue(String::class.java)
                 }
 
-                binding.restaurantNameText.text = hotelName ?: "N/A"
+                binding.restaurantNameText.text = fetchedHotelName
                 binding.restaurantAddressText.text = hotelAddress ?: "N/A"
                 binding.restaurantPhoneText.text = hotelPhone ?: "N/A"
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.e("HotelData", "DB Error: ${error.message}")
                 Toast.makeText(this@DetailsActivity, "Failed to load hotel info", Toast.LENGTH_SHORT).show()
             }
         })
@@ -110,7 +101,8 @@ class DetailsActivity : AppCompatActivity() {
             foodDescriptions = foodDescription,
             foodImage = foodImage,
             foodQuantity = 1,
-            foodIngredients = foodIngredients
+            foodIngredients = foodIngredients,
+            hotelName = fetchedHotelName // ✅ Added
         )
 
         database.child("user").child(userId).child("CartItems").push()
