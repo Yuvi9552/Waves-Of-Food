@@ -74,7 +74,7 @@
                 android:fontFamily="@font/lato_bold"
                 android:text="Short Description :"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <!-- Full Description -->
@@ -98,7 +98,7 @@
                 android:fontFamily="@font/lato_bold"
                 android:text="Ingredients :"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <!-- Ingredients -->
@@ -118,11 +118,12 @@
                 android:id="@+id/hotelnametext"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="16dp"
                 android:fontFamily="@font/lato_bold"
-                android:text="Hotel Information :"
+                android:text="Hotel Information"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <!-- Restaurant Name -->
