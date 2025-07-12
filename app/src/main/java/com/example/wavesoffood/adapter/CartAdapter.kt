@@ -20,7 +20,9 @@ class CartAdapter(
     private val foodImages: MutableList<String>,
     private val foodQuantities: MutableList<Int>,
     private val foodIngredients: MutableList<String>,
-    private val hotelNames: MutableList<String>, // ✅ Added
+    private val hotelNames: MutableList<String>,      // Only Hotel Name
+    private val distances: MutableList<String>,       // Like "1.4 km"
+    private val times: MutableList<String>,           // Like "5 min"
     private val itemKeys: MutableList<String>
 ) : RecyclerView.Adapter<CartAdapter.CartViewHolder>() {
 
@@ -51,9 +53,10 @@ class CartAdapter(
             binding.cartfoodname.text = foodNames[position]
             binding.cartitemprice.text = foodPrices[position]
             binding.cartitemquantity.text = foodQuantities[position].toString()
+            binding.cartHotelName.text = hotelNames[position] // Only name
 
-            // ✅ Set hotel name
-            binding.cartHotelName.text = hotelNames[position]
+            // ✅ Show accurate delivery info
+            binding.cartDistanceTime.text = "${distances[position]} • ${times[position]} "
 
             Glide.with(context)
                 .load(Uri.parse(foodImages[position]))
@@ -97,13 +100,16 @@ class CartAdapter(
 
             cartRef.child(key).removeValue()
                 .addOnSuccessListener {
+                    // Remove data from all lists
                     foodNames.removeAt(position)
                     foodPrices.removeAt(position)
                     foodDescriptions.removeAt(position)
                     foodImages.removeAt(position)
                     foodQuantities.removeAt(position)
                     foodIngredients.removeAt(position)
-                    hotelNames.removeAt(position) // ✅ Remove hotel name
+                    hotelNames.removeAt(position)
+                    distances.removeAt(position)
+                    times.removeAt(position)
                     itemKeys.removeAt(position)
 
                     notifyItemRemoved(position)
