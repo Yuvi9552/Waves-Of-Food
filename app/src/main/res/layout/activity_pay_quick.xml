@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="50dp"
-            android:fontFamily="@font/lato_regular"
+            android:fontFamily="@font/lato_bold"
             android:text="User Details"
             android:textColor="@color/black"
             android:textSize="24sp"
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeonsung_regular"
+                android:fontFamily="@font/lato_bold"
                 android:paddingLeft="8dp"
                 android:text="Name :"
                 android:textColor="@color/black"
@@ -87,7 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeonsung_regular"
+                android:fontFamily="@font/lato_bold"
                 android:paddingLeft="8dp"
                 android:text="Address :"
                 android:textColor="@color/black"
@@ -129,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeonsung_regular"
+                android:fontFamily="@font/lato_bold"
                 android:paddingLeft="8dp"
                 android:text="Phone :"
                 android:textColor="@color/black"
@@ -164,11 +164,11 @@
             app:layout_constraintTop_toBottomOf="@+id/textView26">
 
             <TextView
-                android:layout_width="120dp"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeonsung_regular"
+                android:fontFamily="@font/lato_bold"
                 android:paddingLeft="8dp"
                 android:text="Payment Method :"
                 android:textColor="@color/black"
@@ -202,11 +202,11 @@
             app:layout_constraintTop_toBottomOf="@+id/textView26">
 
             <TextView
-                android:layout_width="160dp"
+                android:layout_width="220dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="4dp"
                 android:layout_weight="1"
-                android:fontFamily="@font/yeonsung_regular"
+                android:fontFamily="@font/lato_bold"
                 android:paddingLeft="8dp"
                 android:text="Total Amount :"
                 android:textColor="@color/black"
