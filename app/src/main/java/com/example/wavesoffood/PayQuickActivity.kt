@@ -36,6 +36,9 @@ class PayQuickActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         databaseRef = FirebaseDatabase.getInstance().reference
 
+        // Disable editing of address field
+        binding.personAddress.isEnabled = false
+
         // Retrieve cart details from intent
         foodItemName = intent.getStringArrayListExtra("FoodItemName") ?: arrayListOf()
         foodItemPrice = intent.getStringArrayListExtra("FoodItemPrice") ?: arrayListOf()
@@ -67,29 +70,34 @@ class PayQuickActivity : AppCompatActivity() {
 
     private fun setUserData() {
         val user = auth.currentUser ?: return
-        databaseRef.child("user").child(user.uid).get()
-            .addOnSuccessListener { snapshot ->
-                binding.personName.setText(
-                    snapshot.child("name").getValue(String::class.java) ?: ""
-                )
-                // Load saved location instead of old address field
-                binding.personAddress.setText(
-                    snapshot.child("location").getValue(String::class.java) ?: ""
-                )
-                binding.personPhone.setText(
-                    snapshot.child("phone").getValue(String::class.java) ?: ""
-                )
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
-            }
+        databaseRef.child("user").child(user.uid)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    binding.personName.setText(
+                        snapshot.child("name").getValue(String::class.java) ?: ""
+                    )
+                    binding.personPhone.setText(
+                        snapshot.child("phone").getValue(String::class.java) ?: ""
+                    )
+
+                    // ✅ Load address from lastLocation.location
+                    val addressFromLastLocation = snapshot
+                        .child("lastLocation")
+                        .child("location")
+                        .getValue(String::class.java)
+                    binding.personAddress.setText(addressFromLastLocation ?: "No address available")
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@PayQuickActivity, "Failed to load user data", Toast.LENGTH_SHORT).show()
+                }
+            })
     }
 
     private fun placeOrder() {
         val uid = auth.currentUser?.uid ?: return
         val time = System.currentTimeMillis()
 
-        // Group items by hotel based on image matching
         val foodMapByHotel = mutableMapOf<String, MutableList<Int>>()
         val menuRef = databaseRef.child("Hotel Users")
 
@@ -111,15 +119,10 @@ class PayQuickActivity : AppCompatActivity() {
                 }
 
                 if (foodMapByHotel.isEmpty()) {
-                    Toast.makeText(
-                        this@PayQuickActivity,
-                        "No hotel info found for items",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@PayQuickActivity, "No hotel info found for items", Toast.LENGTH_SHORT).show()
                     return
                 }
 
-                // Save per-hotel orders
                 for ((hotelId, itemIndices) in foodMapByHotel) {
                     val itemNames = ArrayList<String>()
                     val itemPrices = ArrayList<String>()
@@ -157,21 +160,10 @@ class PayQuickActivity : AppCompatActivity() {
                         hotelUserId = hotelId
                     )
 
-                    // Write to both hotel and user nodes
-                    databaseRef.child("Hotel Users")
-                        .child(hotelId)
-                        .child("OrderDetails")
-                        .child(orderKey)
-                        .setValue(order)
-
-                    databaseRef.child("user")
-                        .child(uid)
-                        .child("BuyHistory")
-                        .child(orderKey)
-                        .setValue(order)
+                    databaseRef.child("Hotel Users").child(hotelId).child("OrderDetails").child(orderKey).setValue(order)
+                    databaseRef.child("user").child(uid).child("BuyHistory").child(orderKey).setValue(order)
                 }
 
-                // Backup full order
                 val fullOrderKey = databaseRef.push().key ?: return
                 val fullOrder = OrderDetails(
                     userId = uid,
@@ -189,27 +181,15 @@ class PayQuickActivity : AppCompatActivity() {
                     paymentReceived = false,
                     hotelUserId = null
                 )
-                databaseRef.child("orderDetails")
-                    .child(fullOrderKey)
-                    .setValue(fullOrder)
+                databaseRef.child("orderDetails").child(fullOrderKey).setValue(fullOrder)
 
-                // Clear user cart
-                databaseRef.child("user")
-                    .child(uid)
-                    .child("CartItems")
-                    .removeValue()
+                databaseRef.child("user").child(uid).child("CartItems").removeValue()
 
-                // Show confirmation
-                CongratsBottomSheet()
-                    .show(supportFragmentManager, "Congrats")
+                CongratsBottomSheet().show(supportFragmentManager, "Congrats")
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(
-                    this@PayQuickActivity,
-                    "Error fetching hotel menus",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@PayQuickActivity, "Error fetching hotel menus", Toast.LENGTH_SHORT).show()
             }
         })
     }
