@@ -6,15 +6,26 @@
     android:background="@drawable/backgroundimage"
     android:padding="12dp">
 
+    <!-- Admin Profile Heading -->
+    <TextView
+        android:id="@+id/admin_profile_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/lato_bold"
+        android:text="User Profile"
+        android:textColor="@color/black"
+        android:textSize="20sp" />
+
     <!-- Header Edit Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="50dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp">
-
 
         <TextView
             android:id="@+id/edit_profile_label"
@@ -31,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginLeft="60dp"
+            android:layout_marginStart="60dp"
             android:clickable="true"
             android:focusable="true"
             android:fontFamily="@font/lato_regular"
@@ -44,7 +55,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="70dp"
         android:orientation="vertical"
         android:paddingBottom="160dp">
 
