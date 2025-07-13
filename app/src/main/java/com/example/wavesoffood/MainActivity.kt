@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var notificationBell: ImageView
+    private lateinit var locationIcon: ImageView // 👈 Added location icon reference
     private lateinit var notificationRef: DatabaseReference
     private lateinit var prefs: SharedPreferences
 
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView)
         notificationBell = findViewById(R.id.notificationbell)
+        locationIcon = findViewById(R.id.locationicon) // 👈 Initialize location icon
 
         bottomNavigationView.setOnItemSelectedListener { menuItem ->
             val fragment = when (menuItem.itemId) {
@@ -65,6 +67,12 @@ class MainActivity : AppCompatActivity() {
 
         notificationBell.setOnClickListener {
             loadFragment(Notification_Bottom_Fragment())
+        }
+
+        // 👇 Handle location icon click
+        locationIcon.setOnClickListener {
+            val intent = Intent(this@MainActivity, ChooseLocation::class.java)
+            startActivity(intent)
         }
 
         if (!isNotificationListenerRegistered) {

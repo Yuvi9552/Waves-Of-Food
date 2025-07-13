@@ -9,11 +9,22 @@
     tools:context=".MainActivity">
 
     <!-- Top Text -->
+
+    <ImageView
+        android:id="@+id/locationicon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView20"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textView20"
+        app:srcCompat="@drawable/baseline_add_location_alt_24" />
+
     <TextView
         android:id="@+id/textView20"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
+        android:layout_marginStart="58dp"
         android:layout_marginTop="55dp"
         android:fontFamily="@font/lato_bold"
         android:text="Explore Your Favorite Food"
