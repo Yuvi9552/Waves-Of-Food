@@ -37,6 +37,9 @@ class SearchFragment : Fragment() {
     private var adapter: MenuAdapter? = null
     private val originalMenuItems = mutableListOf<MenuItem>()
 
+    private var currentSearchQuery = ""
+    private var selectedCategory = "All"
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -72,6 +75,7 @@ class SearchFragment : Fragment() {
         }
 
         setupSearchView()
+        setupChipGroup()
     }
 
     private fun requestUserLocation() {
@@ -172,7 +176,7 @@ class SearchFragment : Fragment() {
                 }
 
                 if (!isAdded || _binding == null) return
-                setAdapter(originalMenuItems)
+                filterMenuItems()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -183,10 +187,7 @@ class SearchFragment : Fragment() {
         })
     }
 
-    private fun calculateDistance(
-        lat1: Double, lon1: Double,
-        lat2: Double, lon2: Double
-    ): Double {
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val R = 6371.0
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
@@ -203,11 +204,7 @@ class SearchFragment : Fragment() {
         return ceil(distanceKm * minutesPerKm).toInt()
     }
 
-    private fun isWithinRadius(
-        lat1: Double, lon1: Double,
-        lat2: Double, lon2: Double,
-        radiusKm: Double
-    ): Boolean {
+    private fun isWithinRadius(lat1: Double, lon1: Double, lat2: Double, lon2: Double, radiusKm: Double): Boolean {
         return calculateDistance(lat1, lon1, lat2, lon2) <= radiusKm
     }
 
@@ -221,23 +218,50 @@ class SearchFragment : Fragment() {
     private fun setupSearchView() {
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                filterMenuItems(query.orEmpty())
+                currentSearchQuery = query.orEmpty()
+                filterMenuItems()
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                filterMenuItems(newText.orEmpty())
+                currentSearchQuery = newText.orEmpty()
+                filterMenuItems()
                 return true
             }
         })
     }
 
-    private fun filterMenuItems(query: String) {
-        val filteredList = originalMenuItems.filter {
-            it.foodName?.contains(query, ignoreCase = true) == true ||
-                    it.hotelName?.contains(query, ignoreCase = true) == true
+    private fun setupChipGroup() {
+        // "All" chip outside scroll
+        binding.chipAll.setOnClickListener {
+            binding.chipGroup.clearCheck()
+            selectedCategory = "All"
+            binding.chipAll.isChecked = true
+            filterMenuItems()
         }
-        setAdapter(filteredList)
+
+        binding.chipGroup.setOnCheckedChangeListener { group, checkedId ->
+            if (checkedId != View.NO_ID) {
+                val chip = group.findViewById<com.google.android.material.chip.Chip>(checkedId)
+                selectedCategory = chip?.text?.toString() ?: "All"
+                binding.chipAll.isChecked = false
+            } else {
+                selectedCategory = "All"
+                binding.chipAll.isChecked = true
+            }
+            filterMenuItems()
+        }
+    }
+
+    private fun filterMenuItems() {
+        val filtered = originalMenuItems.filter {
+            val matchQuery = it.foodName?.contains(currentSearchQuery, ignoreCase = true) == true ||
+                    it.hotelName?.contains(currentSearchQuery, ignoreCase = true) == true
+            val matchCategory = selectedCategory == "All" ||
+                    it.category?.equals(selectedCategory, ignoreCase = true) == true
+            matchQuery && matchCategory
+        }
+        setAdapter(filtered)
     }
 
     override fun onDestroyView() {

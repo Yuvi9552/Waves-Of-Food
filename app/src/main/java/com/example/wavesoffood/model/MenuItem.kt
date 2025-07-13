@@ -16,5 +16,7 @@ data class MenuItem(
 
     // ✅ New fields to be set during runtime in adapter
     var distanceInKm: Double?      = null,  // calculated distance
-    var estimatedTimeMin: Int?     = null   // calculated delivery time in minutes
+    var estimatedTimeMin: Int?     = null,  // calculated delivery time in minutes
+    var category: String? = null
+
 )
