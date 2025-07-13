@@ -72,7 +72,9 @@ class MainActivity : AppCompatActivity() {
         // 👇 Handle location icon click
         locationIcon.setOnClickListener {
             val intent = Intent(this@MainActivity, ChooseLocation::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             startActivity(intent)
+
         }
 
         if (!isNotificationListenerRegistered) {

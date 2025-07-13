@@ -115,7 +115,9 @@ class ChooseLocation : AppCompatActivity() {
                 Toast.makeText(this, "Please select location manually", Toast.LENGTH_SHORT).show()
             }
             .setNeutralButton("Skip") { _, _ ->
-                startActivity(Intent(this, MainActivity::class.java))
+                val intent = Intent(this, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                startActivity(intent)
                 finish()
             }
             .setCancelable(true)
@@ -244,7 +246,11 @@ class ChooseLocation : AppCompatActivity() {
                             if (!isFinishing && !isDestroyed) {
                                 progressDialog.dismiss()
                                 Toast.makeText(this, "Location: $location", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, MainActivity::class.java))
+
+                                // ✅ Prevent MainActivity stacking
+                                val intent = Intent(this, MainActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                startActivity(intent)
                                 finish()
                             }
                         }
