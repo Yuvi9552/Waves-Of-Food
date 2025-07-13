@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
@@ -58,8 +59,13 @@ class CartFragment : Fragment() {
         requestUserLocation()
 
         binding.proceedbuttoncart.setOnClickListener {
-            getOrderItemsDetails()
+            if (foodNames.isEmpty()) {
+                Toast.makeText(requireContext(), "Please add some items to your cart first!", Toast.LENGTH_SHORT).show()
+            } else {
+                getOrderItemsDetails()
+            }
         }
+
 
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner,

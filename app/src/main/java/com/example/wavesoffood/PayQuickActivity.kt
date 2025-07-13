@@ -182,6 +182,21 @@ class PayQuickActivity : AppCompatActivity() {
 
                 databaseRef.child("orderDetails").child(fullOrderKey).setValue(fullOrder)
                 databaseRef.child("user").child(uid).child("CartItems").removeValue()
+
+                // ✅ Notification logic
+                val title = "New Order Placed !"
+                val message = "Your order has been placed successfully. Thanks for ordering !"
+                val timestamp = System.currentTimeMillis().toString()
+
+                val notifyMap = mapOf(
+                    "title" to title,
+                    "message" to message,
+                    "timestamp" to timestamp
+                )
+
+                databaseRef.child("Users").child(uid).child("notifications").child(timestamp).setValue(notifyMap)
+
+                // ✅ Show bottom sheet
                 CongratsBottomSheet().show(supportFragmentManager, "Congrats")
             }
 
